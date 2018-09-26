@@ -1,0 +1,362 @@
+#!/usr/bin/python2
+
+opener        = "xdg-open"
+inputencoding = "utf-8"
+otherlabel    = "(other)"
+alpha         = 0.8
+decimals      = 1 #for piechart percentage
+
+font = {
+ 'family' : 'Fauna One',
+ 'weight' : 'bold',
+ 'size'   : 20
+}
+
+
+legendsettings = {
+	'bbox_to_anchor' : (1.0,1.025),
+	'loc'            : "upper left",
+	'fontsize'       : font['size'], #no auto-resize
+	'frameon'        : False
+}
+
+colors_ = [                # Stephen Few, Show Me the Numbers
+    ['#4D4D4D','#B2B2B2'], # (gray)
+    ['#F15854','#F15854'], # (red)
+    ['#DECF3F','#EEDF4F'], # (yellow)
+    ['#B276B2','#A266A2'], # (purple)
+    ['#60BD68','#50AD58'], # (green)
+    ['#FAA43A','#FAA43A'], # (orange)
+    ['#5DA5DA','#5DA5DA'], # (blue)
+	['#B2912F','#C2953A'], # (brown)
+    ['#F17CB0','#F17CB0'], # (pink)
+    
+    ['none' , 'none'],
+]
+
+limit_horizontal = 10
+limit_vertical   = len(colors_)
+
+
+
+#######################################################################
+import matplotlib.pyplot as plt
+import sys,os
+
+
+
+def recursive(fun,value):
+	resolve = []
+	for v in value:
+		if type(v) is list:
+			resolve.append(recursive(fun,v))
+		else:
+			resolve.append(v)
+	
+	return fun([x for x in resolve if x is not None])
+
+
+def printe(st=""):
+	sys.stderr.write("%s\n"%st)
+
+def badline(l):
+	printe("Warning: Line '%s' does not match expected format."%l.strip("\n\r"))
+
+if len(sys.argv) < 3:
+	printe("Usage: %s <plot type> <output.png> [modifiers...]"%sys.argv[0])
+	printe()
+	printe("plot types: bar, barcount, summarybar, pie, plot{, scatter, stagger}")
+	printe("modifiers: light, dark, transparent, show, header, noheader, grid, crystal")
+	printe()
+	exit(3)
+
+
+plottype = sys.argv[1]
+
+if len(sys.argv) > 3:
+	modifiers = map(lambda x: x.lower(),sys.argv[3:])
+else:
+	modifiers = []
+	
+if "crystal" not in modifiers:
+	alpha = None #not 1.0
+
+if "pie" in plottype:
+	header = "header" in modifiers
+else:
+	header = "noheader" not in modifiers
+
+
+if "dark" in modifiers:
+	colors = map(lambda x: x[1], colors_)
+	edgecolor = '#222222'
+	plt.style.use('dark_background')
+else:
+	colors = map(lambda x: x[0], colors_)
+	edgecolor = '#cccccc'
+
+plt.rc('font', **font)
+
+labellegend = None
+labely,labelx = None,None
+labels = []
+secondorder = []
+sizes = []
+other = 0
+sizesd = {}
+otherd = {}
+
+#INPUT
+
+if "summary" in plottype:
+		
+	if header:	
+		for line in sys.stdin: #header
+			pline = line.strip().decode(inputencoding).split()
+			if len(pline) == 2:
+				pline.append(None)
+			labely,labelx,labellegend = pline
+			break
+
+
+	for line in sys.stdin: #values
+		data = line.strip().decode(inputencoding).split(None,2)
+		if labellegend is None:
+			data.append(None)
+
+		if len(data) == 0:
+			continue
+		if len(data) != 3:
+			badline(line)
+			continue
+
+		if data[2] not in secondorder:
+			if len(secondorder) > limit_vertical-2:
+				data[2] = otherlabel
+				if otherlabel not in secondorder:
+					secondorder.append(otherlabel)
+			else:
+				secondorder.append(data[2])
+
+		if len(labels) > limit_horizontal-2 and data[1] not in labels:
+			if data[2] not in otherd:
+				otherd[data[2]] = 0.0
+
+			otherd[data[2]] += float(data[0])
+		else:
+			if data[1] not in labels:
+				labels.append(data[1])
+				sizesd[data[1]] = {}
+			sizesd[data[1]][data[2]] = float(data[0])
+
+	if len(otherd) > 0 :
+		labels.append("(other)")
+		sizesd[otherlabel] = otherd
+
+
+	for j,k in enumerate(secondorder):
+		sizes.append([])
+		for i in range(0,len(labels)):
+			if k in sizesd[labels[i]]:
+				sizes[j].append(sizesd[labels[i]][k])
+			else:
+				sizes[j].append(0)
+
+elif "count" in plottype or plottype == "pie":
+	if header:
+		for line in sys.stdin: #header
+			plines = line.strip().decode(inputencoding).split()
+
+			labely,labelx = plines
+			labellegend = None
+			break
+		
+	for line in sys.stdin: #values
+		data=line.strip().decode(inputencoding).split(None, 1)
+			
+		if len(data) == 0:
+			continue
+		if len(data) != 2:
+			badline(line)
+			continue
+			
+		if len(labels) > limit_vertical-2:
+			other = other + float(data[0])
+		else:
+			labels.append(data[1])
+			sizes.append(float(data[0]))
+
+	if other != 0 :
+		labels.append(otherlabel)
+		sizes.append(other)
+		
+	if plottype != "pie":
+		sizes = [sizes]
+
+else: #generic multi-column input
+	if header:
+		for line in sys.stdin: # header
+			pline = line.strip().decode(inputencoding).split()
+			plines = pline[0].split(':')
+			if len(plines) == 1:
+				plines = pline[:]
+			if len(plines) == 2:
+				plines.append(None)
+
+			labelx,labely,labellegend = plines
+			del pline[0]
+			secondorder = pline
+			sizes = [[] for x in pline]
+			break
+			
+	if secondorder == [] and (header or "scatter" in plottype): #simplified scatter input
+		
+		scats = {}
+		
+		for line in sys.stdin: #values
+			data = line.strip().decode(inputencoding).split()
+
+			if len(data) == 0:
+				continue
+			if len(data) != 3:
+				badline(line)
+				continue
+				
+			if data[2] not in scats:
+				scats[data[2]] = []
+
+			scats[data[2]].append([float(data[0]),float(data[1])])
+
+		for a in scats:
+			secondorder.append(a)
+			sizes.append([])
+		
+		i = -1
+		for b in scats:
+			i = i+1
+			for x,y in scats[b]:
+				labels.append(x)
+				for j in range(0,len(scats)):
+					sizes[j].append(y if i==j else None)
+
+	
+	else:	
+		for line in sys.stdin: #values
+			data = line.strip().decode(inputencoding).split()
+			if len(data) == 0:
+				continue
+			if len(data) < len(secondorder)+1:
+				badline(line)
+				continue
+			
+			labels.append(data[0])
+			del data[0]
+			
+			while len(data) > len(sizes): # if there was no header, do it manually
+				sizes.append([])
+				
+			for i,d in enumerate(data):
+				try:
+					sizes[i].append(float(d))
+				except ValueError:
+					sizes[i].append(None)
+					if d != '-':
+						printe("Not a numeric value: '%s'. Use '-' to skip a value." % d)
+
+
+# OUTPUT
+
+if plottype == "pie":
+
+	sizesp = []
+
+	for s in sizes:
+		sizesp.append(round(float(s)/sum(sizes)*100,int(decimals)))
+
+	sizesp.pop()
+	sizesp.append(100-sum(sizesp)) # just making sure ;)
+	
+	labels = [('{0} - {1:1.'+str(decimals)+'f} %').format(i,j) for i,j in zip(labels, sizesp)]
+
+	pie_wedge_collection = plt.pie(sizes, explode=None, shadow=False, startangle=90)
+
+	for i,pie_wedge in enumerate(pie_wedge_collection[0]):
+		pie_wedge.set_edgecolor(edgecolor)
+		pie_wedge.set_facecolor(colors[i])
+		pie_wedge.set_alpha(alpha)
+
+	plt.legend(labels, title=labellegend, **legendsettings)
+	
+	plt.axis('equal')
+
+elif "bar" in plottype or "plot" in plottype:
+	
+	fig1, ax1 = plt.subplots(figsize=(24,8))
+
+	N = len(labels)
+	width = 0.9
+	ind = [x + width for x in range(0,N)]
+
+	bottom = [0]*N
+	items = []
+	for i,data in enumerate(sizes):
+		if "bar" in plottype:
+			items.append(ax1.bar(ind, data, width, color=colors[i], align='center', bottom=bottom, edgecolor=edgecolor, alpha=alpha))
+			bottom = [x + y for x, y in zip(bottom, data)]
+		else: #plot
+				
+			labels = map(float,labels)
+			labelsz = []
+			dataz = []
+			for j,z in enumerate(data):
+				if z is not None:
+					labelsz.append(labels[j])
+					dataz.append(z)
+			if "scatter" in plottype:
+				items.append(ax1.scatter(labelsz, dataz, color=colors[i], linewidth=3, s=50.0, marker='x', alpha=alpha))
+			else:
+				items.append(ax1.plot(labelsz, dataz, color=colors[i], linewidth=3, marker='o', markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha ))
+				
+	
+				
+	plt.xlim(width/2-width/10,N+width/2)
+	
+	ax1.set_axisbelow(True)
+	
+	if labely is not None:
+		ax1.set_ylabel(labely)
+	if labelx is not None:
+		ax1.set_xlabel(labelx)
+
+	if "bar" in plottype:
+		ax1.set_xticks(ind)
+		ax1.set_xticklabels(labels, rotation=33 if max(map(len,labels))*N>=100 else 0)
+	else:
+		ax1.set_xlim(left=min(labels)-0.5, right=max(labels)+0.5)
+		maxi = recursive(max,sizes)
+		mini = recursive(min,sizes)
+		ax1.set_ylim(bottom=mini - (maxi-mini)*0.02, top=maxi + (maxi-mini)*0.02)
+
+	ax1.xaxis.set_label_coords(1.05, 0.02)
+
+	if "grid" in modifiers:
+				ax1.grid(axis='y' if "bar" in plottype else "both")
+				
+	if len(secondorder) > 1:
+		if "plot" in plottype:
+			ax1.legend(secondorder, title=labellegend, **legendsettings)
+		else:
+			ax1.legend(items[::-1],secondorder[::-1], title=labellegend, **legendsettings)
+
+
+else:
+	printe("Unknown plottype '%s'. See Usage!"%plottype)
+	exit(4)
+	
+	
+	
+
+plt.savefig(sys.argv[2], bbox_inches='tight', transparent = "transparent" in modifiers)
+
+if ("show" in modifiers or "test" in modifiers) and opener and opener.lower() != "none":
+	os.system("%s %s"%(opener,sys.argv[2]))
