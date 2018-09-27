@@ -1,0 +1,135 @@
+#!/usr/bin/python2
+from argparse import ArgumentParser as AP
+import colorful as C
+import sys,re,colorsys
+
+
+# https://www.quora.com/How-do-I-generate-n-visually-distinct-RGB-colours-in-Python
+def HSVToRGB(h, s, v):
+ (r, g, b) = colorsys.hsv_to_rgb(h, s, v)
+ return "#%02x%02x%02x" % (int(255*r), int(255*g), int(255*b))
+def getDistinctColors(n):
+ huePartition = 1.0 / (n + 1)
+ return (HSVToRGB(huePartition * value, 1.0, 0.5) for value in range(0, n))
+ 
+ 
+def printe(st=""):
+	sys.stderr.write("%s\n"%st)
+
+C.use_true_colors()
+
+
+
+parser = AP()
+parser.add_argument('-w','--width', metavar='int', default=0x10, help='How many bytes to dump per line')
+parser.add_argument('-a', '--autocolors', action='store_true', help='Enable automatic byte-based colors')
+parser.add_argument('-p', dest='colors', type=str, metavar='"1-6,8/7/0x33-0x50"', help='Color specific groups (positions) of bytes in unique colors')
+parser.add_argument('-t', dest='titles', type=str, metavar='"descr1//descr3"', help='Titles for each of the color groups')
+parser.add_argument('file', help='Filename to read')
+args=parser.parse_args()
+
+file = args.file
+width = int(args.width,0)
+colors = None
+
+if width < 1:
+	printe("Width should be more than 0")
+	exit(1)
+	
+titles = args.titles.split('/')
+
+colors = []
+if args.colors:
+		t_colors = re.sub('[^0-9A-Za-z,-]','/',args.colors).split("/")
+		for t_color in t_colors:
+			if t_color == '' :
+				continue
+			colors.append([])
+			t_color = t_color.split(",")
+			for positions in t_color:
+				positions = positions.split("-")
+				if len(positions) == 1:
+					colors[-1].append(int(positions[0],0))
+				elif len(positions) == 2:
+					for i in range(int(positions[0],0), int(positions[1],0)+1):
+						colors[-1].append(i)
+				else:
+					printe("Syntax error in color specific groups")
+					exit(1)
+
+
+for i,c in enumerate(getDistinctColors(len(colors))):
+	C.update_palette({'cc%02d'%i: c} )
+	if titles[i] == '':
+		continue
+	fstr = '{c.bold_white_on_cc%02d}00{c.reset} - {c.bold_white}%s{c.reset}' % (i,titles[i])
+	print fstr.format(c=C) 
+
+
+subs = {
+	0x07: 'a',
+	0x08: 'b',
+	0x09: 't',
+	0x0a: 'n',
+	0x0b: 'v',
+	0x0c: 'f',
+	0x0d: 'r',
+}
+
+def fc(x,i,p):
+	if colors:
+		for n,c in enumerate(colors):
+			if p in c:
+				fstr = '{c.bold_white_on_cc%02d}%s{c.reset}' % (n,x)
+				return fstr.format(c=C)
+	
+	if not args.autocolors:
+		return x
+	
+	if i == 0 or i == 255:				#0s or 1s
+		return C.bold_red(x)
+	elif i>=7 and i<=13: 				#terminal control characters
+		return C.bold_red_on_white(x)
+	elif i < 32 or i == 127: 			#other control characters
+		return C.gray(x)
+	elif i >= 48 and i <= 57: 			#digits
+		return C.cyan(x)
+	elif i > 127: 						#high
+		return C.red(x)
+	elif i >= 65 and i <= 90:			#uppercase
+		return C.bold_green(x)
+	elif i >= 97 and i <= 122:			#lowercase
+		return C.green(x)
+	else: 								#symbols
+		return C.yellow(x)
+
+
+offset = 0
+with open(file, 'rb') as infile:
+	while True:
+		data = bytearray(infile.read(width))
+		if not len(data):
+			break
+		print C.gray50("0x%008x" % offset),C.white("|"),
+		for micro_offset,byte in enumerate(data):
+			print fc("%02x" % byte, byte, offset + micro_offset),
+			
+		for i in range(len(data),width):
+			print "  ",
+		
+		print C.white(" | "),
+		
+		printable = ""
+		for micro_offset,byte in enumerate(data):
+			if byte in subs:
+					prn = subs[byte]
+			elif byte<32 or byte>126:
+					prn = "."
+			else:
+				prn = chr(byte)
+			printable += fc("%c" % prn, byte, offset + micro_offset)
+
+
+		print printable
+		offset += len(data)
+		
