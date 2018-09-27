@@ -5,7 +5,7 @@ Sleek tools to create and show presentations
 Yes!
 https://github.com/FireyFly/pixd
 https://github.com/0ki/binGraph
-
+https://github.com/cortesi/scurve/blob/master/binvis
 
 ### Tips and tricks:
 * General speaking tips and tricks
