@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+PIDFILE=/tmp/termshot.$$
+[ -z "$WINDOWID" ] && echo \$WINDOWID is not set. Check you terminal emulator. && exit 2
+[ -z $2 ] && echo "Usage: $0 /path/to/destination_image.png command [arguments]" && exit 1
+
+clear
+sleep 0.2
+file=$1
+shift
+echo "clear; $*; touch $PIDFILE; sleep 1; exit" | script -q & #preserve colors
+while [ ! -f $PIDFILE ]; do
+	sleep 0.1
+done
+rm $PIDFILE
+
+import -silent -window $WINDOWID -gravity East -crop +14+30 $file
+sleep 1
+echo Saved screenshot in $file

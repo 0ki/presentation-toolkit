@@ -1,5 +1,12 @@
 #!/usr/bin/python2
 
+
+'''
+TODO:
+	- modifier to swap around labels (first or last)
+
+
+'''
 opener        = "xdg-open"
 inputencoding = "utf-8"
 otherlabel    = "(other)"
@@ -7,7 +14,7 @@ alpha         = 0.8
 decimals      = 1 #for piechart percentage
 
 font = {
- 'family' : 'Fauna One',
+ 'family' : 'Monda',
  'weight' : 'bold',
  'size'   : 20
 }
@@ -93,7 +100,7 @@ if "dark" in modifiers:
 	plt.style.use('dark_background')
 else:
 	colors = map(lambda x: x[0], colors_)
-	edgecolor = '#cccccc'
+	edgecolor = '#dddddd'
 
 plt.rc('font', **font)
 
@@ -269,14 +276,17 @@ else: #generic multi-column input
 if plottype == "pie":
 
 	sizesp = []
-
 	for s in sizes:
 		sizesp.append(round(float(s)/sum(sizes)*100,int(decimals)))
+	#	sizesp.append(round(float(s)/sum(sizes)*100 - 0.5*10**int(-decimals),int(decimals))) #simul floor
 
 	sizesp.pop()
 	sizesp.append(100-sum(sizesp)) # just making sure ;)
+	if sizesp[-1] < 0:
+		sizesp[sizesp.index(max(sizesp))] -= sizesp[-1]
+		sizesp[-1] = 0.0
 	
-	labels = [('{0} - {1:1.'+str(decimals)+'f} %').format(i,j) for i,j in zip(labels, sizesp)]
+	labels = [('{0} - {1:1.'+str(decimals)+'f} %').decode(inputencoding).format(i,j) for i,j in zip(labels, sizesp)]
 
 	pie_wedge_collection = plt.pie(sizes, explode=None, shadow=False, startangle=90)
 
