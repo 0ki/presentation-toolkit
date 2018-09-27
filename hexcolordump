@@ -21,10 +21,12 @@ C.use_true_colors()
 
 
 parser = AP()
-parser.add_argument('-w','--width', metavar='int', default=0x10, help='How many bytes to dump per line')
+parser.add_argument('-w','--width', metavar='int', default='16', help='How many bytes to dump per line')
 parser.add_argument('-a', '--autocolors', action='store_true', help='Enable automatic byte-based colors')
 parser.add_argument('-p', dest='colors', type=str, metavar='"1-6,8/7/0x33-0x50"', help='Color specific groups (positions) of bytes in unique colors')
 parser.add_argument('-t', dest='titles', type=str, metavar='"descr1//descr3"', help='Titles for each of the color groups')
+parser.add_argument('--bare', action='store_true', help='Just the dump')
+parser.add_argument('-s', '--strings', action='store_true', help='Show printable ascii characters')
 parser.add_argument('file', help='Filename to read')
 args=parser.parse_args()
 
@@ -32,12 +34,17 @@ file = args.file
 width = int(args.width,0)
 colors = None
 
-if width < 1:
-	printe("Width should be more than 0")
+if width == 0 and args.bare and not args.strings:
+	width = -1
+	
+elif width < 1:
+	printe("Width should be more than 0; (bare mode allows 0)")
 	exit(1)
 	
-titles = args.titles.split('/')
-
+if args.titles:
+	titles = args.titles.split('/')
+else:
+	titles = []
 colors = []
 if args.colors:
 		t_colors = re.sub('[^0-9A-Za-z,-]','/',args.colors).split("/")
@@ -60,7 +67,7 @@ if args.colors:
 
 for i,c in enumerate(getDistinctColors(len(colors))):
 	C.update_palette({'cc%02d'%i: c} )
-	if titles[i] == '':
+	if i>=len(titles) or titles[i] == '':
 		continue
 	fstr = '{c.bold_white_on_cc%02d}00{c.reset} - {c.bold_white}%s{c.reset}' % (i,titles[i])
 	print fstr.format(c=C) 
@@ -84,7 +91,7 @@ def fc(x,i,p):
 				return fstr.format(c=C)
 	
 	if not args.autocolors:
-		return x
+		return C.gray90(x)
 	
 	if i == 0 or i == 255:				#0s or 1s
 		return C.bold_red(x)
@@ -110,26 +117,35 @@ with open(file, 'rb') as infile:
 		data = bytearray(infile.read(width))
 		if not len(data):
 			break
-		print C.gray50("0x%008x" % offset),C.white("|"),
+		
+		if not args.bare:
+			print C.gray50("0x%008x" % offset),C.white("|"),
+			
 		for micro_offset,byte in enumerate(data):
 			print fc("%02x" % byte, byte, offset + micro_offset),
 			
 		for i in range(len(data),width):
 			print "  ",
 		
-		print C.white(" | "),
-		
-		printable = ""
-		for micro_offset,byte in enumerate(data):
-			if byte in subs:
-					prn = subs[byte]
-			elif byte<32 or byte>126:
-					prn = "."
-			else:
-				prn = chr(byte)
-			printable += fc("%c" % prn, byte, offset + micro_offset)
+		if args.strings:
+			print C.white(" | "),
+			
+			printable = ""
+			for micro_offset,byte in enumerate(data):
+				if byte in subs:
+						prn = subs[byte]
+				elif byte<32 or byte>126:
+						prn = "."
+				else:
+					prn = chr(byte)
+				printable += fc("%c" % prn, byte, offset + micro_offset)
 
 
-		print printable
+			print printable
+		else:
+			print
 		offset += len(data)
 		
+		
+if offset == 0:
+	printe("File empty")

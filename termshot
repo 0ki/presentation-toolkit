@@ -13,7 +13,7 @@ while [ ! -f $PIDFILE ]; do
 	sleep 0.1
 done
 rm $PIDFILE
-
+sleep 0.5
 import -silent -window $WINDOWID -gravity East -crop +14+30 $file
 sleep 1
 echo Saved screenshot in $file
