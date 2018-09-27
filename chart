@@ -314,8 +314,10 @@ elif "bar" in plottype or "plot" in plottype:
 			items.append(ax1.bar(ind, data, width, color=colors[i], align='center', bottom=bottom, edgecolor=edgecolor, alpha=alpha))
 			bottom = [x + y for x, y in zip(bottom, data)]
 		else: #plot
-				
-			labels = map(float,labels)
+			try:	
+				labels = map(float,labels)
+			except:
+				pass
 			labelsz = []
 			dataz = []
 			for j,z in enumerate(data):
@@ -342,7 +344,10 @@ elif "bar" in plottype or "plot" in plottype:
 		ax1.set_xticks(ind)
 		ax1.set_xticklabels(labels, rotation=33 if max(map(len,labels))*N>=100 else 0)
 	else:
-		ax1.set_xlim(left=min(labels)-0.5, right=max(labels)+0.5)
+		try:
+			ax1.set_xlim(left=min(labels)-0.5, right=max(labels)+0.5)
+		except:
+			pass
 		maxi = recursive(max,sizes)
 		mini = recursive(min,sizes)
 		ax1.set_ylim(bottom=mini - (maxi-mini)*0.02, top=maxi + (maxi-mini)*0.02)
