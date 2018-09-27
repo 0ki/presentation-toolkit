@@ -2,5 +2,5 @@
 [ -z "$1" ] && echo Usage: $0 file.png transparent && exit 1
 extra=""
 [ "${2:0:1}" == "t" ] && extra="-fuzz 2% -transparent white"
-convert $1 $extra -colorspace HSL -channel B -negate +channel -colorspace sRGB $1
+convert "$1" $extra -colorspace HSL -channel B -negate +channel -colorspace sRGB "$1"
 
