@@ -72,8 +72,8 @@ def badline(l):
 if len(sys.argv) < 3:
 	printe("Usage: %s <plot type> <output.png> [modifiers...]"%sys.argv[0])
 	printe()
-	printe("plot types: bar, barcount, summarybar, pie, plot{, scatter, stagger}")
-	printe("modifiers: light, dark, transparent, show, header, noheader, grid, crystal")
+	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
+	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, crystal")
 	printe()
 	exit(3)
 
@@ -219,9 +219,8 @@ else: #generic multi-column input
 			secondorder = pline
 			sizes = [[] for x in pline]
 			break
-			
-	if secondorder == [] and (header or "scatter" in plottype): #simplified scatter input
-		
+	
+	if secondorder == [] and (labelx is not None): #simplified scatter input
 		scats = {}
 		
 		for line in sys.stdin: #values
@@ -229,9 +228,9 @@ else: #generic multi-column input
 
 			if len(data) == 0:
 				continue
-			if len(data) != 3:
-				badline(line)
-				continue
+			#if len(data) != 3:
+			#	badline(line)
+			#	continue
 				
 			if data[2] not in scats:
 				scats[data[2]] = []
@@ -315,8 +314,13 @@ elif "bar" in plottype or "plot" in plottype:
 	items = []
 	for i,data in enumerate(sizes):
 		if "bar" in plottype:
-			items.append(ax1.bar(ind, data, width, color=colors[i], align='center', bottom=bottom, edgecolor=edgecolor, alpha=alpha))
-			bottom = [x + y for x, y in zip(bottom, data)]
+			if "top" in plottype:
+				items.append(ax1.bar(ind, data, width, color=colors[i], align='center', bottom=bottom, edgecolor=edgecolor, alpha=alpha))
+				bottom = [x + y for x, y in zip(bottom, data)]
+			else:
+				# 1 - 0.0 ; 2 - 0.5; 3 - 1.0
+				items.append(ax1.bar([x+(i-1)*width/len(sizes) for x in ind], data, width/len(sizes), color=colors[i], align='center', edgecolor=edgecolor, alpha=alpha))
+			
 		else: #plot
 			try:	
 				labels = map(float,labels)
@@ -354,9 +358,14 @@ elif "bar" in plottype or "plot" in plottype:
 			pass
 		maxi = recursive(max,sizes)
 		mini = recursive(min,sizes)
-		ax1.set_ylim(bottom=mini - (maxi-mini)*0.02, top=maxi + (maxi-mini)*0.02)
+		
+		if "log" not in modifiers:
+			ax1.set_ylim(bottom=mini - (maxi-mini)*0.02, top=maxi + (maxi-mini)*0.02)
 
 	ax1.xaxis.set_label_coords(1.05, 0.02)
+
+	if "log" in modifiers:
+		ax1.set_yscale('log')
 
 	if "grid" in modifiers:
 				ax1.grid(linestyle='--', axis='y' if "bar" in plottype else "both")
