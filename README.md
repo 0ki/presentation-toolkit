@@ -1,6 +1,15 @@
 # presentation-toolkit
 Sleek tools to create and show presentations. These tools work on Linux, but can be made to work on other platforms too with some or a lot of effort (depending on the tool).
 
+#### Here's a quick guide to get you started in life
+```
+dd if=/dev/urandom count=1000 | tr -dc 0-9 | sed -E 's/(..).(...).(...)./\1 \2 \3\n/g' | head -15 | chart plotscatter /tmp/test.png noheader dark show
+dd if=/dev/urandom count=1000 | tr -dc 0-9 | sed -E 's/(..).(...).(...)./\1 \2 \3\n/g' | head -15 | chart bar /tmp/test.png noheader dark show
+dd if=/dev/urandom count=1000 | tr -dc 0-9 | sed -E 's/(..).(...).(...)./\1 \2 \3\n/g' | head -15 | chart pie /tmp/test.png noheader dark show
+image-invert /tmp/test.png 
+termshot /tmp/test2.png hexcolordump -as /tmp/test.png 
+```
+
 ### Is there anything else?
 Yes!
 
