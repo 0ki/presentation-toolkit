@@ -12,12 +12,17 @@ inputencoding = "utf-8"
 otherlabel    = "(other)"
 alpha         = 0.8
 decimals      = 1 #for piechart percentage
+width         = 0.8 # proportion of horizontal estate covered by bars
+overlay       = 0.75 # overlay of sidebars
+	
+
+font_preference = ['Fauna One', 'Monda', 'Verdana', 'Sans']
 
 font = {
- 'family' : 'Monda',
  'weight' : 'bold',
  'size'   : 20
 }
+  
 
 
 legendsettings = {
@@ -48,10 +53,9 @@ limit_vertical   = len(colors_)
 
 #######################################################################
 import matplotlib.pyplot as plt
-import sys,os
-
-
-
+import matplotlib.font_manager as fnt
+import sys,os,warnings
+	
 def recursive(fun,value):
 	resolve = []
 	for v in value:
@@ -73,7 +77,7 @@ if len(sys.argv) < 3:
 	printe("Usage: %s <plot type> <output.png> [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, crystal")
+	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal")
 	printe()
 	exit(3)
 
@@ -93,7 +97,25 @@ if "pie" in plottype:
 else:
 	header = "noheader" not in modifiers
 
-
+for p in [
+('header','noheader'),
+('light','dark'),
+]:
+	if sum([pn in modifiers for pn in p])>1:
+		printe("Conflicting modifiers. You can only have one of '%s'."%("', '".join(p)))
+		exit(4)
+		
+for p in [
+('top','side'),
+('scatter','stagger'),
+('summary','count'),
+('pie','bar','plot'),
+]:
+	if sum([pn in plottype for pn in p])>1:
+		printe("Conflicting plottypes. You can only have one of '%s'."%("', '".join(p)))
+		exit(4)
+		
+		
 if "dark" in modifiers:
 	colors = map(lambda x: x[1], colors_)
 	edgecolor = '#222222'
@@ -101,6 +123,26 @@ if "dark" in modifiers:
 else:
 	colors = map(lambda x: x[0], colors_)
 	edgecolor = '#dddddd'
+
+if "bar" in plottype:
+	topbar = (("count" not in plottype and "log" not in modifiers) or "top" in plottype) and "side" not in plottype
+
+if "overlay" not in modifiers:
+	overlay = 0.0
+	
+	
+font['family']='sans'
+
+with warnings.catch_warnings():
+	warnings.simplefilter("error")
+	for f in font_preference:
+		try:
+			fnt.findfont(f,fallback_to_default=False)
+			font['family']=f
+			break
+		except:
+			printe("Warning: Font family %s not found. Falling back." % f)
+
 
 plt.rc('font', **font)
 
@@ -228,9 +270,9 @@ else: #generic multi-column input
 
 			if len(data) == 0:
 				continue
-			#if len(data) != 3:
-			#	badline(line)
-			#	continue
+			if len(data) != 3:
+				badline(line)
+				continue
 				
 			if data[2] not in scats:
 				scats[data[2]] = []
@@ -271,7 +313,7 @@ else: #generic multi-column input
 				except ValueError:
 					sizes[i].append(None)
 					if d != '-':
-						printe("Not a numeric value: '%s'. Use '-' to skip a value." % d)
+						printe("Warning: Not a numeric value: '%s'. Use '-' to skip a value." % d)
 
 
 # OUTPUT
@@ -307,19 +349,18 @@ elif "bar" in plottype or "plot" in plottype:
 	fig1, ax1 = plt.subplots(figsize=(24,8))
 
 	N = len(labels)
-	width = 0.9
 	ind = [x + width for x in range(0,N)]
 
 	bottom = [0]*N
 	items = []
 	for i,data in enumerate(sizes):
 		if "bar" in plottype:
-			if "top" in plottype:
+			if topbar:
 				items.append(ax1.bar(ind, data, width, color=colors[i], align='center', bottom=bottom, edgecolor=edgecolor, alpha=alpha))
 				bottom = [x + y for x, y in zip(bottom, data)]
 			else:
-				# 1 - 0.0 ; 2 - 0.5; 3 - 1.0
-				items.append(ax1.bar([x+(i-1)*width/len(sizes) for x in ind], data, width/len(sizes), color=colors[i], align='center', edgecolor=edgecolor, alpha=alpha))
+				realwidth = width/len(sizes)		
+				items.append(ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data, realwidth*(1+overlay), color=colors[i], align='center', edgecolor=edgecolor, alpha=alpha))
 			
 		else: #plot
 			try:	
@@ -338,8 +379,6 @@ elif "bar" in plottype or "plot" in plottype:
 				items.append(ax1.plot(labelsz, dataz, color=colors[i], linewidth=3, marker='o' if len(dataz)<=100 else None, markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha ))
 				
 	
-				
-	plt.xlim(width/2-width/10,N+width/2)
 	
 	ax1.set_axisbelow(True)
 	
@@ -351,6 +390,7 @@ elif "bar" in plottype or "plot" in plottype:
 	if "bar" in plottype:
 		ax1.set_xticks(ind)
 		ax1.set_xticklabels(labels, rotation=33 if max(map(len,labels))*N>=100 else 0)
+		ax1.set_xlim(-0.5+width,N-0.5+width)
 	else:
 		try:
 			ax1.set_xlim(left=min(labels)-0.5, right=max(labels)+0.5)
@@ -368,7 +408,7 @@ elif "bar" in plottype or "plot" in plottype:
 		ax1.set_yscale('log')
 
 	if "grid" in modifiers:
-				ax1.grid(linestyle='--', axis='y' if "bar" in plottype else "both")
+				ax1.grid(linestyle=':', axis='y' if "bar" in plottype else "both")
 				
 	if len(secondorder) > 1:
 		if "plot" in plottype:
