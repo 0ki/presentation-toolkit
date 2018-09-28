@@ -204,12 +204,16 @@ else: #generic multi-column input
 	if header:
 		for line in sys.stdin: # header
 			pline = line.strip().decode(inputencoding).split()
+			
 			plines = pline[0].split(':')
 			if len(plines) == 1:
-				plines = pline[:]
+				if len(pline)<3:
+					plines = pline[:]
+				else:
+					plines.append(None)
 			if len(plines) == 2:
 				plines.append(None)
-
+				
 			labelx,labely,labellegend = plines
 			del pline[0]
 			secondorder = pline
@@ -327,7 +331,7 @@ elif "bar" in plottype or "plot" in plottype:
 			if "scatter" in plottype:
 				items.append(ax1.scatter(labelsz, dataz, color=colors[i], linewidth=3, s=50.0, marker='x', alpha=alpha))
 			else:
-				items.append(ax1.plot(labelsz, dataz, color=colors[i], linewidth=3, marker='o', markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha ))
+				items.append(ax1.plot(labelsz, dataz, color=colors[i], linewidth=3, marker='o' if len(dataz)<=100 else None, markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha ))
 				
 	
 				
