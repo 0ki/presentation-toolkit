@@ -1,6 +1,8 @@
 #!/bin/bash
 [ -z "$1" ] && echo Usage: $0 file.png transparent && exit 1
 extra=""
-[ "${2:0:1}" == "t" ] && extra="-fuzz 2% -transparent white"
+#[ "${2:0:1}" == "t" ] && extra="-fuzz 2% -transparent white"
+[ "${2:0:1}" == "t" ] && extra="-fuzz 2% -transparent $(convert $1 -format "%[pixel:p{0,0}]" info:)"
+
 convert "$1" $extra -colorspace HSL -channel B -negate +channel -colorspace sRGB "$1"
 
