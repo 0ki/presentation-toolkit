@@ -359,7 +359,7 @@ elif "bar" in plottype or "plot" in plottype:
 	ax1.xaxis.set_label_coords(1.05, 0.02)
 
 	if "grid" in modifiers:
-				ax1.grid(axis='y' if "bar" in plottype else "both")
+				ax1.grid(linestyle='--', axis='y' if "bar" in plottype else "both")
 				
 	if len(secondorder) > 1:
 		if "plot" in plottype:
