@@ -8,13 +8,14 @@ TODO:
 
 '''
 opener        = "xdg-open"
+tmpdir        = "/tmp/"
 inputencoding = "utf-8"
 otherlabel    = "(other)"
 alpha         = 0.8
 decimals      = 1 #for piechart percentage
 width         = 0.8 # proportion of horizontal estate covered by bars
 overlay       = 0.75 # overlay of sidebars
-	
+
 
 font_preference = ['Fauna One', 'Monda', 'Verdana', 'Sans']
 
@@ -55,6 +56,7 @@ limit_vertical   = len(colors_)
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fnt
 import sys,os,warnings
+from uuid import uuid4
 	
 def recursive(fun,value):
 	resolve = []
@@ -73,8 +75,8 @@ def printe(st=""):
 def badline(l):
 	printe("Warning: Line '%s' does not match expected format."%l.strip("\n\r"))
 
-if len(sys.argv) < 3:
-	printe("Usage: %s <plot type> <output.png> [modifiers...]"%sys.argv[0])
+if len(sys.argv) < 2:
+	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
 	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal")
@@ -82,18 +84,19 @@ if len(sys.argv) < 3:
 	exit(3)
 
 
-plottype = sys.argv[1]
+sys.argv.pop(0)
+plottype = sys.argv.pop(0)
 
-outfilename = sys.argv[2]
-
-if "." not in outfilename:
-	printe("Output filename needs a filetype.")
-	exit(3)
-
-if len(sys.argv) > 3:
-	modifiers = map(lambda x: x.lower(),sys.argv[3:])
+if len(sys.argv)>0 and "." in sys.argv[0]:
+	outfilename = sys.argv.pop(0)
 else:
-	modifiers = []
+	outfilename = None
+
+modifiers = map(lambda x: x.lower(),sys.argv)
+
+if outfilename is None:
+	modifiers.append("show")
+	outfilename = tmpdir + "/" + str(uuid4()) +".png"
 	
 if "crystal" not in modifiers:
 	alpha = None #not 1.0
