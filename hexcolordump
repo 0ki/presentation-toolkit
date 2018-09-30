@@ -1,5 +1,5 @@
 #!/usr/bin/python2
-from argparse import ArgumentParser as AP
+import argparse
 import colorful as C
 import sys,re,colorsys
 
@@ -51,7 +51,7 @@ C.use_true_colors()
 
 
 
-parser = AP()
+parser = argparse.ArgumentParser()
 parser.add_argument('-w','--width', metavar='int', default='16', help='How many bytes to dump per line')
 parser.add_argument('-a', '--autocolors', action='store_true', help='Enable automatic byte-dependent colors')
 parser.add_argument('-n', '--nocolors', action='store_true', help='Disable automatic byte-dependent colors')
@@ -59,10 +59,10 @@ parser.add_argument('-p', dest='colors', type=str, metavar='"1-6,8/7/0x33-0x50"'
 parser.add_argument('-t', dest='titles', type=str, metavar='"descr1//descr3"', help='Titles for each of the color groups')
 parser.add_argument('--bare', action='store_true', help='Just the dump')
 parser.add_argument('-s', '--strings', action='store_true', help='Show printable ascii characters')
-parser.add_argument('file', help='Filename to read')
+parser.add_argument('file', nargs='?', type=argparse.FileType('rb'), default=sys.stdin, help='Filename to read')
 args=parser.parse_args()
 
-file = args.file
+infile = args.file
 width = int(args.width,0)
 colors = None
 
@@ -116,40 +116,39 @@ subs = {
 }
 
 offset = 0
-with open(file, 'rb') as infile:
-	while True:
-		data = bytearray(infile.read(width))
-		if not len(data):
-			break
+while True:
+	data = bytearray(infile.read(width))
+	if not len(data):
+		break
+	
+	if not args.bare:
+		print C.gray50("0x%008x" % offset),C.white("|"),
 		
-		if not args.bare:
-			print C.gray50("0x%008x" % offset),C.white("|"),
-			
+	for micro_offset,byte in enumerate(data):
+		print fc("%02x" % byte, byte, offset + micro_offset),
+		
+	for i in range(len(data),width):
+		print "  ",
+	
+	if args.strings:
+		print C.white("|"),
+		
+		printable = ""
 		for micro_offset,byte in enumerate(data):
-			print fc("%02x" % byte, byte, offset + micro_offset),
-			
-		for i in range(len(data),width):
-			print "  ",
-		
-		if args.strings:
-			print C.white("|"),
-			
-			printable = ""
-			for micro_offset,byte in enumerate(data):
-				if byte in subs:
-						prn = subs[byte]
-				elif byte<32 or byte>126:
-						prn = "."
-				else:
-					prn = chr(byte)
-				printable += fc("%c" % prn, byte, offset + micro_offset)
+			if byte in subs:
+					prn = subs[byte]
+			elif byte<32 or byte>126:
+					prn = "."
+			else:
+				prn = chr(byte)
+			printable += fc("%c" % prn, byte, offset + micro_offset)
 
 
-			print printable
-		else:
-			print
-		offset += len(data)
-		
-		
+		print printable
+	else:
+		print
+	offset += len(data)
+	
+	
 if offset == 0:
 	printe("File empty")
