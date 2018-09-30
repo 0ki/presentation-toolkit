@@ -16,13 +16,45 @@ def getDistinctColors(n):
 def printe(st=""):
 	sys.stderr.write("%s\n"%st)
 
+
+
+def fc(x,i,p):
+	if colors:
+		for n,c in enumerate(colors):
+			if p in c:
+				fstr = '{c.bold_white_on_cc%02d}%s{c.reset}' % (n,x)
+				return fstr.format(c=C)
+	
+	if args.nocolors or (len(colors)>0 and not args.autocolors):
+		return C.gray90(x)
+	
+	if i == 0 or i == 255:				#0s or 1s
+		return C.bold_red(x)
+	elif i>=7 and i<=13: 				#terminal control characters
+		return C.bold_red_on_white(x)
+	elif i < 32 or i == 127: 			#other control characters
+		return C.gray(x)
+	elif i >= 48 and i <= 57: 			#digits
+		return C.cyan(x)
+	elif i > 127: 						#high
+		return C.red(x)
+	elif i >= 65 and i <= 90:			#uppercase
+		return C.bold_green(x)
+	elif i >= 97 and i <= 122:			#lowercase
+		return C.green(x)
+	else: 								#symbols
+		return C.yellow(x)
+
+
+
 C.use_true_colors()
 
 
 
 parser = AP()
 parser.add_argument('-w','--width', metavar='int', default='16', help='How many bytes to dump per line')
-parser.add_argument('-a', '--autocolors', action='store_true', help='Enable automatic byte-based colors')
+parser.add_argument('-a', '--autocolors', action='store_true', help='Enable automatic byte-dependent colors')
+parser.add_argument('-n', '--nocolors', action='store_true', help='Disable automatic byte-dependent colors')
 parser.add_argument('-p', dest='colors', type=str, metavar='"1-6,8/7/0x33-0x50"', help='Color specific groups (positions) of bytes in unique colors')
 parser.add_argument('-t', dest='titles', type=str, metavar='"descr1//descr3"', help='Titles for each of the color groups')
 parser.add_argument('--bare', action='store_true', help='Just the dump')
@@ -83,34 +115,6 @@ subs = {
 	0x0d: 'r',
 }
 
-def fc(x,i,p):
-	if colors:
-		for n,c in enumerate(colors):
-			if p in c:
-				fstr = '{c.bold_white_on_cc%02d}%s{c.reset}' % (n,x)
-				return fstr.format(c=C)
-	
-	if not args.autocolors:
-		return C.gray90(x)
-	
-	if i == 0 or i == 255:				#0s or 1s
-		return C.bold_red(x)
-	elif i>=7 and i<=13: 				#terminal control characters
-		return C.bold_red_on_white(x)
-	elif i < 32 or i == 127: 			#other control characters
-		return C.gray(x)
-	elif i >= 48 and i <= 57: 			#digits
-		return C.cyan(x)
-	elif i > 127: 						#high
-		return C.red(x)
-	elif i >= 65 and i <= 90:			#uppercase
-		return C.bold_green(x)
-	elif i >= 97 and i <= 122:			#lowercase
-		return C.green(x)
-	else: 								#symbols
-		return C.yellow(x)
-
-
 offset = 0
 with open(file, 'rb') as infile:
 	while True:
@@ -128,7 +132,7 @@ with open(file, 'rb') as infile:
 			print "  ",
 		
 		if args.strings:
-			print C.white(" | "),
+			print C.white("|"),
 			
 			printable = ""
 			for micro_offset,byte in enumerate(data):
