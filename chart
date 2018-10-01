@@ -73,13 +73,17 @@ def recursive(fun,value):
 	return fun([x for x in resolve if x is not None])
 
 def empty(l):
-    return all([empty(i) for i in l]) if isinstance(l, list) else False
+    return all([empty(i) for i in l]) if isinstance(l, list) else l is None
 
 def printe(st=""):
 	sys.stderr.write("%s\n"%st)
 
 def badline(l):
 	printe("Warning: Line '%s' does not match expected format."%l.strip("\n\r"))
+
+def badheader(l):
+	printe("Error: Header '%s' does not have the right number of fields."%l.strip("\n\r"))
+	exit(1)
 
 if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
@@ -181,6 +185,9 @@ if "summary" in plottype:
 	if header:	
 		for line in sys.stdin: #header
 			pline = line.strip().decode(inputencoding).split()
+			if len(pline) < 2:
+				badheader(line)
+
 			if len(pline) == 2:
 				pline.append(None)
 			labely,labelx,labellegend = pline
@@ -234,6 +241,8 @@ elif "count" in plottype or plottype == "pie":
 	if header:
 		for line in sys.stdin: #header
 			plines = line.strip().decode(inputencoding).split()
+			if len(pline) != 2:
+				badheader(line)
 
 			labely,labelx = plines
 			labellegend = None
@@ -274,7 +283,10 @@ else: #generic multi-column input
 					plines.append(None)
 			if len(plines) == 2:
 				plines.append(None)
-				
+
+			if len(plines) != 3:
+				badheader(line)
+
 			labelx,labely,labellegend = plines
 			del pline[0]
 			secondorder = pline
@@ -333,7 +345,6 @@ else: #generic multi-column input
 					sizes[i].append(None if "plot" in plottype else 0)
 					if d != '-':
 						printe("Warning: Not a numeric value: '%s'. Use '-' to skip a value." % d)
-
 
 # OUTPUT
 
