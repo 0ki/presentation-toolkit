@@ -68,6 +68,8 @@ def recursive(fun,value):
 	
 	return fun([x for x in resolve if x is not None])
 
+def empty(l):
+    return all([empty(i) for i in l]) if isinstance(l, list) else False
 
 def printe(st=""):
 	sys.stderr.write("%s\n"%st)
@@ -304,12 +306,12 @@ else: #generic multi-column input
 					sizes[j].append(y if i==j else None)
 
 	
-	else:	
+	else:
 		for line in sys.stdin: #values
 			data = line.strip().decode(inputencoding).split()
 			if len(data) == 0:
 				continue
-			if len(data) < len(secondorder)+1:
+			if len(data) != len(secondorder)+1:
 				badline(line)
 				continue
 			
@@ -330,7 +332,7 @@ else: #generic multi-column input
 
 # OUTPUT
 
-if sizes == [] or sizes == [[]]:
+if empty(sizes):
 	print "Found no data. Check if there is any or try adding \"noheader\" modifier."
 	exit(1)
 
