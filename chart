@@ -84,6 +84,7 @@ if len(sys.argv) < 2:
 	exit(3)
 
 
+argv_s = sys.argv[:]
 sys.argv.pop(0)
 plottype = sys.argv.pop(0)
 
@@ -93,6 +94,8 @@ else:
 	outfilename = None
 
 modifiers = map(lambda x: x.lower(),sys.argv)
+
+sys.argv = argv_s
 
 if outfilename is None:
 	modifiers.append("show")
