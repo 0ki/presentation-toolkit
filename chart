@@ -330,6 +330,10 @@ else: #generic multi-column input
 
 # OUTPUT
 
+if sizes == [] or sizes == [[]]:
+	print "Found no data. Check if there is any or try adding \"noheader\" modifier."
+	exit(1)
+
 if plottype == "pie":
 
 	sizesp = []
@@ -352,7 +356,7 @@ if plottype == "pie":
 		pie_wedge.set_facecolor(colors[i])
 		pie_wedge.set_alpha(alpha)
 
-	plt.legend(labels, title=labellegend, **legendsettings)
+	plt.legend(labels, title=labelx, **legendsettings)
 	
 	plt.axis('equal')
 
