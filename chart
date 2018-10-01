@@ -47,6 +47,10 @@ colors_ = [                # Stephen Few, Show Me the Numbers
     ['none' , 'none'],
 ]
 
+edgecolors_ = [
+	'#cccccc','#333333'
+]
+
 limit_horizontal = 10
 limit_vertical   = len(colors_)
 
@@ -55,7 +59,7 @@ limit_vertical   = len(colors_)
 #######################################################################
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fnt
-import sys,os,warnings
+import sys,os,warnings,random
 from uuid import uuid4
 	
 def recursive(fun,value):
@@ -132,14 +136,15 @@ for p in [
 		
 if "dark" in modifiers:
 	colors = map(lambda x: x[1], colors_)
-	edgecolor = '#222222'
+	edgecolor = edgecolors_[1]
 	plt.style.use('dark_background')
 else:
 	colors = map(lambda x: x[0], colors_)
-	edgecolor = '#dddddd'
+	edgecolor = edgecolors_[0]
 
-if "bar" in plottype:
-	topbar = (("count" not in plottype and "log" not in modifiers) or "top" in plottype) and "side" not in plottype
+finalcolor = colors.pop()
+
+topbar = "bar" in plottype and (("count" not in plottype and "log" not in modifiers) or "top" in plottype) and "side" not in plottype
 
 if "overlay" not in modifiers:
 	overlay = 0.0
@@ -325,7 +330,7 @@ else: #generic multi-column input
 				try:
 					sizes[i].append(float(d))
 				except ValueError:
-					sizes[i].append(None)
+					sizes[i].append(None if "plot" in plottype else 0)
 					if d != '-':
 						printe("Warning: Not a numeric value: '%s'. Use '-' to skip a value." % d)
 
@@ -333,8 +338,20 @@ else: #generic multi-column input
 # OUTPUT
 
 if empty(sizes):
-	print "Found no data. Check if there is any or try adding \"noheader\" modifier."
+	print "No data found. Check if there is any or try adding \"noheader\" modifier."
 	exit(1)
+
+while len(colors)<len(sizes)-1:
+	gcol='#'
+	for i in range(0,3):
+		gcol+= '%02X' % random.randint(*(0x40,0xff) if "dark" in modifiers else (0x00,0xaa))
+	colors.append(gcol)
+
+if "plot" in plottype:
+	colors.append(edgecolor)
+else:
+	colors.append(finalcolor)
+
 
 if plottype == "pie":
 
@@ -371,6 +388,7 @@ elif "bar" in plottype or "plot" in plottype:
 
 	bottom = [0]*N
 	items = []
+
 	for i,data in enumerate(sizes):
 		if "bar" in plottype:
 			if topbar:
@@ -429,10 +447,10 @@ elif "bar" in plottype or "plot" in plottype:
 				ax1.grid(linestyle=':', axis='y' if "bar" in plottype else "both")
 				
 	if len(secondorder) > 1:
-		if "plot" in plottype:
-			ax1.legend(secondorder, title=labellegend, **legendsettings)
-		else:
+		if topbar:
 			ax1.legend(items[::-1],secondorder[::-1], title=labellegend, **legendsettings)
+		else:
+			ax1.legend(secondorder, title=labellegend, **legendsettings)
 
 
 else:
