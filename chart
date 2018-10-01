@@ -89,7 +89,7 @@ if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal")
+	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, tabs, commas, semicolons")
 	printe()
 	exit(3)
 
@@ -122,6 +122,7 @@ else:
 for p in [
 ('header','noheader'),
 ('light','dark'),
+('tabs','commas','semicolons'),
 ]:
 	if sum([pn in modifiers for pn in p])>1:
 		printe("Conflicting modifiers. You can only have one of '%s'."%("', '".join(p)))
@@ -136,8 +137,17 @@ for p in [
 	if sum([pn in plottype for pn in p])>1:
 		printe("Conflicting plottypes. You can only have one of '%s'."%("', '".join(p)))
 		exit(4)
+
 		
-		
+if "tabs" in modifiers:
+	tabulator="\t"
+elif "commas" in modifiers:
+	tabulator=","
+elif "semicolons" in modifiers:
+	tabulator=";"
+else:
+	tabulator=None
+
 if "dark" in modifiers:
 	colors = map(lambda x: x[1], colors_)
 	edgecolor = edgecolors_[1]
@@ -184,7 +194,7 @@ if "summary" in plottype:
 		
 	if header:	
 		for line in sys.stdin: #header
-			pline = line.strip().decode(inputencoding).split()
+			pline = line.strip().decode(inputencoding).split(tabulator)
 			if len(pline) < 2:
 				badheader(line)
 
@@ -195,11 +205,11 @@ if "summary" in plottype:
 
 
 	for line in sys.stdin: #values
-		data = line.strip().decode(inputencoding).split(None,2)
+		data = line.strip().decode(inputencoding).split(tabulator,2)
 		if labellegend is None:
 			data.append(None)
 
-		if len(data) == 0:
+		if len(data) == 0 or line.strip() == '':
 			continue
 		if len(data) != 3:
 			badline(line)
@@ -240,7 +250,7 @@ if "summary" in plottype:
 elif "count" in plottype or plottype == "pie":
 	if header:
 		for line in sys.stdin: #header
-			plines = line.strip().decode(inputencoding).split()
+			plines = line.strip().decode(inputencoding).split(tabulator)
 			if len(pline) != 2:
 				badheader(line)
 
@@ -249,9 +259,9 @@ elif "count" in plottype or plottype == "pie":
 			break
 		
 	for line in sys.stdin: #values
-		data=line.strip().decode(inputencoding).split(None, 1)
+		data=line.strip().decode(inputencoding).split(tabulator, 1)
 			
-		if len(data) == 0:
+		if len(data) == 0 or line.strip() == '':
 			continue
 		if len(data) != 2:
 			badline(line)
@@ -273,7 +283,7 @@ elif "count" in plottype or plottype == "pie":
 else: #generic multi-column input
 	if header:
 		for line in sys.stdin: # header
-			pline = line.strip().decode(inputencoding).split()
+			pline = line.strip().decode(inputencoding).split(tabulator)
 			
 			plines = pline[0].split(':')
 			if len(plines) == 1:
@@ -292,14 +302,14 @@ else: #generic multi-column input
 			secondorder = pline
 			sizes = [[] for x in pline]
 			break
-	
+
 	if secondorder == [] and (labelx is not None): #simplified scatter input
 		scats = {}
 		
 		for line in sys.stdin: #values
-			data = line.strip().decode(inputencoding).split()
+			data = line.strip().decode(inputencoding).split(tabulator)
 
-			if len(data) == 0:
+			if len(data) == 0 or line.strip() == '':
 				continue
 			if len(data) != 3:
 				badline(line)
@@ -325,8 +335,9 @@ else: #generic multi-column input
 	
 	else:
 		for line in sys.stdin: #values
-			data = line.strip().decode(inputencoding).split()
-			if len(data) == 0:
+			data = line.strip().decode(inputencoding).split(tabulator)
+
+			if len(data) == 0 or line.strip() == '':
 				continue
 			if len(data) != len(secondorder)+1:
 				badline(line)
@@ -343,10 +354,11 @@ else: #generic multi-column input
 					sizes[i].append(float(d))
 				except ValueError:
 					sizes[i].append(None if "plot" in plottype else 0)
-					if d != '-':
+					if d != '-' and d != '':
 						printe("Warning: Not a numeric value: '%s'. Use '-' to skip a value." % d)
 
 # OUTPUT
+print sizes
 
 if empty(sizes):
 	print "No data found. Check if there is any or try adding \"noheader\" modifier."
