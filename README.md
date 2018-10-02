@@ -1,6 +1,10 @@
 # presentation-toolkit
 Sleek tools to create and show presentations. These tools work on Linux, but can be made to work on other platforms too with some or a lot of effort (depending on the tool).
 
+
+
+![Output example (chart)](chart_sample.png "Example output of 'chart'")
+
 #### Here's a quick guide to get you started in life
 ```
 dd if=/dev/urandom count=1000 | tr -dc 0-9 | sed -E 's/(..).(...).(...)./\1 \2 \3\n/g' | head -15 | chart plotscatter grid noheader cubefit dark
@@ -12,7 +16,7 @@ termshot /tmp/test2.png hexcolordump -as /tmp/test.png
 
 ### Is there anything else?
 Yes!
-
+[
 https://github.com/FireyFly/pixd
 
 https://github.com/0ki/binGraph
