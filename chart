@@ -96,6 +96,7 @@ limit_vertical   = 20#len(colors_)
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fnt
 import matplotlib.patheffects as PathEffects
+import matplotlib.dates as mpld
 import numpy as np
 import sys,os,warnings,random,dateutil,datetime
 from uuid import uuid4
@@ -536,11 +537,13 @@ elif "bar" in plottype or "plot" in plottype:
 				realwidth = width/len(sizes)
 				items.append(ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data, realwidth*(1+overlay), color=col, align='center', edgecolor=edgecolor, alpha=alpha, **barstyle))
 
-				if fit and len(data) > 1:
-					fitp = np.polyfit(range(0,len(labels)),data,fit)
-					pf = np.poly1d(fitp)
-					ax1.plot(ind,pf(range(0,len(labels))), color=col, alpha=alpha, **fitstyle)
 
+			if topbar:
+				labelsz = ind
+				dataz = bottom
+			else:
+				labelsz = [x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind]
+				dataz = data
 		else: #plot
 
 			labelsz = []
@@ -555,10 +558,27 @@ elif "bar" in plottype or "plot" in plottype:
 			else:
 				items.append(ax1.plot(labels, data, color=col, alpha=alpha, drawstyle='steps-post' if 'stagger' in plottype else 'default', markeredgecolor=edgecolor, **dict(plotstyle.items() + ({'marker': None}.items() if len(dataz)>plotmarkerlimit else [])))[0])
 
-			if fit and len(dataz) > 1 and len(labelsz) > 1:
-				fitp = np.polyfit(range(0,len(labelsz)),dataz,fit)
-				pf = np.poly1d(fitp)
-				ax1.plot(labelsz,pf(range(0,len(labelsz))), color=col, alpha=alpha, **fitstyle)
+
+		if fit and len(dataz) > 1 and len(labelsz) > 1:
+			labelszl = range(0,len(labelsz))
+			numerictrend = False
+			if type(labelsz[0]) in [float,int]:
+				labelszl = labelsz[::]
+				numerictrend = True
+			elif type(labelsz[0]) is datetime.datetime:
+				labelszl = map(mpld.date2num,labelsz)
+				numerictrend = True
+
+			labelszs, datazs = zip(*sorted(zip(labelszl, dataz)))
+			fitp = np.polyfit(labelszs,datazs,fit)
+			pf = np.poly1d(fitp)
+
+			if numerictrend:
+				labelsz = np.linspace(min(labelszs),max(labelszs),100)
+				labelszs = labelsz
+
+			ax1.plot(labelsz,pf(labelszs), color=col[0] if type(col) is list else col, alpha=alpha, **fitstyle)
+
 
 	ax1.set_axisbelow(True)
 
