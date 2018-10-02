@@ -16,7 +16,7 @@ termshot /tmp/test2.png hexcolordump -as /tmp/test.png
 
 ### Is there anything else?
 Yes!
-[
+
 https://github.com/FireyFly/pixd
 
 https://github.com/0ki/binGraph
