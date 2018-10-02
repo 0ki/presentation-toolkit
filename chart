@@ -358,7 +358,6 @@ else: #generic multi-column input
 						printe("Warning: Not a numeric value: '%s'. Use '-' to skip a value." % d)
 
 # OUTPUT
-print sizes
 
 if empty(sizes):
 	print "No data found. Check if there is any or try adding \"noheader\" modifier."
