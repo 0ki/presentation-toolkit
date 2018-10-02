@@ -526,7 +526,7 @@ elif "bar" in plottype or "plot" in plottype:
 			if "scatter" in plottype:
 				items.append(ax1.scatter(labels, data, color=colors[i], alpha=alpha, **scatterstyle))
 			else:
-				items.append(ax1.plot(labels, data, color=colors[i], alpha=alpha, drawstyle='steps-post' if 'stagger' in plottype else 'default', markeredgecolor=edgecolor, **dict(plotstyle.items() + {'marker': None}.items() if len(dataz)>100 else []))[0])
+				items.append(ax1.plot(labels, data, color=colors[i], alpha=alpha, drawstyle='steps-post' if 'stagger' in plottype else 'default', markeredgecolor=edgecolor, **dict(plotstyle.items() + ({'marker': None}.items() if len(dataz)>100 else [])))[0])
 
 			if fit and len(dataz) > 1 and len(labelsz) > 1:
 				fitp = np.polyfit(range(0,len(labelsz)),dataz,fit)
