@@ -224,12 +224,17 @@ colors_ = map (lambda x: x if isinstance(x,list) else [x,x], colors_)
 
 if "dark" in modifiers:
 	colors = map(lambda x: x[1], colors_)
+	for i in intellicolors:
+		if isinstance(intellicolors[i],list):
+			intellicolors[i]=intellicolors[i][1]
 	edgecolor = edgecolors_[1]
 	plt.style.use('dark_background')
 else:
 	colors = map(lambda x: x[0], colors_)
+	for i in intellicolors:
+		if isinstance(intellicolors[i],list):
+			intellicolors[i]=intellicolors[i][0]
 	edgecolor = edgecolors_[0]
-
 
 if "linearfit" in modifiers or "fit" in modifiers:
 	fit = 1
