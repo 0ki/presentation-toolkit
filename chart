@@ -60,7 +60,7 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fnt
 import matplotlib.patheffects as PathEffects
 import numpy as np
-import sys,os,warnings,random
+import sys,os,warnings,random,dateutil,datetime
 from uuid import uuid4
 
 def recursive(fun,value):
@@ -70,8 +70,11 @@ def recursive(fun,value):
 			resolve.append(recursive(fun,v))
 		else:
 			resolve.append(v)
-	
-	return fun([x for x in resolve if x is not None])
+	try:
+		ret = fun([x for x in resolve if x is not None])
+	except:
+		ret = None
+	return ret
 
 def empty(l):
     return all([empty(i) for i in l]) if isinstance(l, list) else l is None
@@ -95,6 +98,10 @@ def autolabel(rects):
                 '%d' % int(height),
 				ha='center', va='center', color=plt.rcParams['figure.facecolor']).set_path_effects([PathEffects.withStroke(linewidth=2, foreground=plt.rcParams['text.color'])])
 
+
+def multdelta(td,co):
+	return datetime.timedelta(td.total_seconds() * co/24/60/60)
+	
 if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
@@ -441,6 +448,17 @@ elif "bar" in plottype or "plot" in plottype:
 	bottom = [0]*N
 	items = []
 
+	if "bar" not in plottype:
+		try:	
+			labels = map(float,labels)
+		except:
+			pass
+
+		try:
+			labels = map(dateutil.parser.parse,labels)
+		except:
+			pass
+				
 	for i,data in enumerate(sizes):
 		if "bar" in plottype:
 			if topbar:
@@ -456,10 +474,6 @@ elif "bar" in plottype or "plot" in plottype:
 					ax1.plot(ind,pf(range(0,len(labels))), color=colors[i], linewidth=1, linestyle='--')
 
 		else: #plot
-			try:	
-				labels = map(float,labels)
-			except:
-				pass
 
 			labelsz = []
 			dataz = []
@@ -498,6 +512,15 @@ elif "bar" in plottype or "plot" in plottype:
 			ax1.set_xlim(left=min(labels)-0.5, right=max(labels)+0.5)
 		except:
 			pass
+			
+		try: #datetime
+			maxi = recursive(max,labels)
+			mini = recursive(min,labels)
+			padding = multdelta((maxi-mini),0.05)
+			ax1.set_xlim(left=min(labels) - padding, right=max(labels) + padding)
+		except:
+			pass
+			
 		maxi = recursive(max,sizes)
 		mini = recursive(min,sizes)
 		
