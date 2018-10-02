@@ -154,6 +154,8 @@ elif "semicolons" in modifiers:
 else:
 	tabulator=None
 
+colors_ = map (lambda x: x if isinstance(x,list) else [x,x], colors_)
+
 if "dark" in modifiers:
 	colors = map(lambda x: x[1], colors_)
 	edgecolor = edgecolors_[1]
@@ -436,6 +438,11 @@ elif "bar" in plottype or "plot" in plottype:
 				realwidth = width/len(sizes)		
 				items.append(ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data, realwidth*(1+overlay), color=colors[i], align='center', edgecolor=edgecolor, alpha=alpha))
 			
+				if fit and len(data) > 1:
+					fitp = np.polyfit(range(0,len(labels)),data,fit)
+					pf = np.poly1d(fitp)
+					ax1.plot(ind,pf(range(0,len(labels))), color=colors[i], linewidth=1, linestyle='--')
+
 		else: #plot
 			try:	
 				labels = map(float,labels)
