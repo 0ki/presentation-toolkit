@@ -59,9 +59,10 @@ limit_vertical   = len(colors_)
 #######################################################################
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fnt
+import numpy as np
 import sys,os,warnings,random
 from uuid import uuid4
-	
+
 def recursive(fun,value):
 	resolve = []
 	for v in value:
@@ -89,9 +90,13 @@ if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, tabs, commas, semicolons")
+	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, tabs, commas, semicolons, [linear,square,cube]fit")
 	printe()
 	exit(3)
+
+
+warnings.simplefilter('ignore', np.RankWarning)
+
 
 
 argv_s = sys.argv[:]
@@ -123,6 +128,7 @@ for p in [
 ('header','noheader'),
 ('light','dark'),
 ('tabs','commas','semicolons'),
+('fit','linearfit','squarefit','cubefit'),
 ]:
 	if sum([pn in modifiers for pn in p])>1:
 		printe("Conflicting modifiers. You can only have one of '%s'."%("', '".join(p)))
@@ -155,6 +161,16 @@ if "dark" in modifiers:
 else:
 	colors = map(lambda x: x[0], colors_)
 	edgecolor = edgecolors_[0]
+
+
+if "linearfit" in modifiers or "fit" in modifiers:
+	fit = 1
+elif "squarefit" in modifiers:
+	fit = 2
+elif "cubefit" in modifiers:
+	fit = 3
+else:
+	fit = None
 
 finalcolor = colors.pop()
 
@@ -251,7 +267,7 @@ elif "count" in plottype or plottype == "pie":
 	if header:
 		for line in sys.stdin: #header
 			plines = line.strip().decode(inputencoding).split(tabulator)
-			if len(pline) != 2:
+			if len(plines) != 2:
 				badheader(line)
 
 			labely,labelx = plines
@@ -434,9 +450,12 @@ elif "bar" in plottype or "plot" in plottype:
 			if "scatter" in plottype:
 				items.append(ax1.scatter(labelsz, dataz, color=colors[i], linewidth=3, s=50.0, marker='x', alpha=alpha))
 			else:
-				items.append(ax1.plot(labelsz, dataz, color=colors[i], linewidth=3, marker='o' if len(dataz)<=100 else None, markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha ))
-				
+				items.append(ax1.plot(labelsz, dataz, color=colors[i], linewidth=3, marker='o' if len(dataz)<=100 else None, markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha )[0])
 	
+			if fit and len(dataz) > 1 and len(labels) > 1:
+				fitp = np.polyfit(range(0,len(labelsz)),dataz,fit)
+				pf = np.poly1d(fitp)
+				ax1.plot(labelsz,pf(range(0,len(labelsz))), color=colors[i], linewidth=0.7, linestyle='--')
 	
 	ax1.set_axisbelow(True)
 	
@@ -472,7 +491,7 @@ elif "bar" in plottype or "plot" in plottype:
 		if topbar:
 			ax1.legend(items[::-1],secondorder[::-1], title=labellegend, **legendsettings)
 		else:
-			ax1.legend(secondorder, title=labellegend, **legendsettings)
+			ax1.legend(items, secondorder, title=labellegend, **legendsettings)
 
 
 else:
