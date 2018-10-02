@@ -99,7 +99,7 @@ if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, label, tabs, commas, semicolons, [linear,square,cube]fit")
+	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit")
 	printe()
 	exit(3)
 
@@ -490,7 +490,7 @@ elif "bar" in plottype or "plot" in plottype:
 		ax1.set_xticks(ind)
 		ax1.set_xticklabels(labels)
 		ax1.set_xlim(-0.5+width,N-0.5+width)
-		if "label" in modifiers:
+		if "labels" in modifiers:
 			map(autolabel,items)
 	else:
 		try:
