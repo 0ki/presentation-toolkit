@@ -1,10 +1,10 @@
 #!/usr/bin/python2
-
+# -*- coding: utf-8 -*-
 
 '''
 TODO:
 	- modifier to swap around labels (first or last)
-
+	- add label modifier support for other plottypes
 
 '''
 opener        = "xdg-open"
@@ -15,7 +15,6 @@ alpha         = 0.8
 decimals      = 1 #for piechart percentage
 width         = 0.8 # proportion of horizontal estate covered by bars
 overlay       = 0.75 # overlay of sidebars
-
 
 font_preference = ['Fauna One', 'Monda', 'Verdana', 'Sans']
 
@@ -59,6 +58,7 @@ limit_vertical   = len(colors_)
 #######################################################################
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fnt
+import matplotlib.patheffects as PathEffects
 import numpy as np
 import sys,os,warnings,random
 from uuid import uuid4
@@ -86,11 +86,20 @@ def badheader(l):
 	printe("Error: Header '%s' does not have the right number of fields."%l.strip("\n\r"))
 	exit(1)
 
+def autolabel(rects):
+	for rect in rects:
+		height = rect.get_height()
+		if height <= 0:
+			continue
+		ax1.text(rect.get_x() + rect.get_width()/2., rect.get_y() + height/2 - height*0.05,
+                '%d' % int(height),
+				ha='center', va='center', color=plt.rcParams['figure.facecolor']).set_path_effects([PathEffects.withStroke(linewidth=2, foreground=plt.rcParams['text.color'])])
+
 if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, tabs, commas, semicolons, [linear,square,cube]fit")
+	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, label, tabs, commas, semicolons, [linear,square,cube]fit")
 	printe()
 	exit(3)
 
@@ -395,6 +404,8 @@ else:
 
 if plottype == "pie":
 
+	fig1 = plt.subplots()[0]
+
 	sizesp = []
 	for s in sizes:
 		sizesp.append(round(float(s)/sum(sizes)*100,int(decimals)))
@@ -456,7 +467,6 @@ elif "bar" in plottype or "plot" in plottype:
 					labelsz.append(labels[j])
 					dataz.append(z)
 
-
 			if "scatter" in plottype:
 				items.append(ax1.scatter(labels, data, color=colors[i], linewidth=3, s=50.0, marker='x', alpha=alpha))
 			else:
@@ -480,6 +490,8 @@ elif "bar" in plottype or "plot" in plottype:
 		ax1.set_xticks(ind)
 		ax1.set_xticklabels(labels)
 		ax1.set_xlim(-0.5+width,N-0.5+width)
+		if "label" in modifiers:
+			map(autolabel,items)
 	else:
 		try:
 			ax1.set_xlim(left=min(labels)-0.5, right=max(labels)+0.5)
@@ -509,8 +521,6 @@ elif "bar" in plottype or "plot" in plottype:
 else:
 	printe("Unknown plottype '%s'. See Usage!"%plottype)
 	exit(4)
-	
-	
 	
 
 plt.savefig(outfilename, bbox_inches='tight', transparent = "transparent" in modifiers)
