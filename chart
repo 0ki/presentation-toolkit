@@ -4,7 +4,7 @@
 TODO:
 	- modifier to swap around labels (first or last)
 	- add label modifier support for other plottypes
-
+	- refactor code into function blocks
 '''
 conffile        = "chart_conf.py"
 postprocfile    = "chart_post.py"
@@ -88,7 +88,7 @@ edgecolors_ = [
 ]
 
 limit_horizontal = 10
-limit_vertical   = 20#len(colors_)
+limit_vertical   = len(colors_)
 
 
 
@@ -535,7 +535,7 @@ elif "bar" in plottype or "plot" in plottype:
 				bottom = [x + y for x, y in zip(bottom, data)]
 			else:
 				realwidth = width/len(sizes)
-				items.append(ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data, realwidth*(1+overlay), color=col, align='center', edgecolor=edgecolor, alpha=alpha, **barstyle))
+				items.append(ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data,width - (len(sizes) -1)*overlay*realwidth, color=col, align='center', edgecolor=edgecolor, alpha=alpha, **barstyle))
 
 
 			if topbar:
