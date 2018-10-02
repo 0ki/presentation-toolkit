@@ -441,21 +441,24 @@ elif "bar" in plottype or "plot" in plottype:
 				labels = map(float,labels)
 			except:
 				pass
+
 			labelsz = []
 			dataz = []
 			for j,z in enumerate(data):
 				if z is not None:
 					labelsz.append(labels[j])
 					dataz.append(z)
+
+
 			if "scatter" in plottype:
-				items.append(ax1.scatter(labelsz, dataz, color=colors[i], linewidth=3, s=50.0, marker='x', alpha=alpha))
+				items.append(ax1.scatter(labels, data, color=colors[i], linewidth=3, s=50.0, marker='x', alpha=alpha))
 			else:
-				items.append(ax1.plot(labelsz, dataz, color=colors[i], linewidth=3, marker='o' if len(dataz)<=100 else None, markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha )[0])
+				items.append(ax1.plot(labels, data, color=colors[i], linewidth=3, marker='o' if len(dataz)<=100 else None, markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha )[0])
 	
-			if fit and len(dataz) > 1 and len(labels) > 1:
+			if fit and len(dataz) > 1 and len(labelsz) > 1:
 				fitp = np.polyfit(range(0,len(labelsz)),dataz,fit)
 				pf = np.poly1d(fitp)
-				ax1.plot(labelsz,pf(range(0,len(labelsz))), color=colors[i], linewidth=0.7, linestyle='--')
+				ax1.plot(labelsz,pf(range(0,len(labelsz))), color=colors[i], linewidth=1, linestyle='--')
 	
 	ax1.set_axisbelow(True)
 	
@@ -464,9 +467,11 @@ elif "bar" in plottype or "plot" in plottype:
 	if labelx is not None:
 		ax1.set_xlabel(labelx)
 
+	plt.xticks(rotation=33 if max(map(len,map(unicode,labels)))*N>=100 else 0)
+
 	if "bar" in plottype:
 		ax1.set_xticks(ind)
-		ax1.set_xticklabels(labels, rotation=33 if max(map(len,labels))*N>=100 else 0)
+		ax1.set_xticklabels(labels)
 		ax1.set_xlim(-0.5+width,N-0.5+width)
 	else:
 		try:
