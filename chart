@@ -1,5 +1,4 @@
 #!/usr/bin/python2
-# -*- coding: utf-8 -*-
 
 '''
 TODO:
@@ -7,6 +6,8 @@ TODO:
 	- add label modifier support for other plottypes
 
 '''
+conffile      = "chart_conf.py"
+postprocfile  = "chart_post.py"
 opener        = "xdg-open"
 tmpdir        = "/tmp/"
 inputencoding = "utf-8"
@@ -101,12 +102,12 @@ def autolabel(rects):
 
 def multdelta(td,co):
 	return datetime.timedelta(td.total_seconds() * co/24/60/60)
-	
+
 if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit")
+	printe("modifiers: dontload, light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit")
 	printe()
 	exit(3)
 
@@ -131,14 +132,8 @@ sys.argv = argv_s
 if outfilename is None:
 	modifiers.append("show")
 	outfilename = tmpdir + "/" + str(uuid4()) +".png"
-	
-if "crystal" not in modifiers:
-	alpha = None #not 1.0
 
-if "pie" in plottype:
-	header = "header" in modifiers
-else:
-	header = "noheader" not in modifiers
+
 
 for p in [
 ('header','noheader'),
@@ -149,7 +144,7 @@ for p in [
 	if sum([pn in modifiers for pn in p])>1:
 		printe("Conflicting modifiers. You can only have one of '%s'."%("', '".join(p)))
 		exit(4)
-		
+
 for p in [
 ('top','side'),
 ('scatter','stagger'),
@@ -160,7 +155,22 @@ for p in [
 		printe("Conflicting plottypes. You can only have one of '%s'."%("', '".join(p)))
 		exit(4)
 
-		
+
+if "dontload" not in modifiers:
+	try:
+		execfile(conffile)
+	except IOError:
+		pass
+
+if "crystal" not in modifiers:
+	alpha = None #not 1.0
+
+if "pie" in plottype:
+	header = "header" in modifiers
+else:
+	header = "noheader" not in modifiers
+
+
 if "tabs" in modifiers:
 	tabulator="\t"
 elif "commas" in modifiers:
@@ -196,8 +206,8 @@ topbar = "bar" in plottype and (("count" not in plottype and "log" not in modifi
 
 if "overlay" not in modifiers:
 	overlay = 0.0
-	
-	
+
+
 font['family']='sans'
 
 with warnings.catch_warnings():
@@ -225,8 +235,8 @@ otherd = {}
 #INPUT
 
 if "summary" in plottype:
-		
-	if header:	
+
+	if header:
 		for line in sys.stdin: #header
 			pline = line.strip("\r\n").decode(inputencoding).split(tabulator)
 			if len(pline) < 2:
@@ -291,16 +301,16 @@ elif "count" in plottype or plottype == "pie":
 			labely,labelx = plines
 			labellegend = None
 			break
-		
+
 	for line in sys.stdin: #values
 		data=line.strip("\r\n").decode(inputencoding).split(tabulator, 1)
-			
+
 		if len(data) == 0 or line.strip() == '':
 			continue
 		if len(data) != 2:
 			badline(line)
 			continue
-			
+
 		if len(labels) > limit_vertical-2:
 			other = other + float(data[0])
 		else:
@@ -310,7 +320,7 @@ elif "count" in plottype or plottype == "pie":
 	if other != 0 :
 		labels.append(otherlabel)
 		sizes.append(other)
-		
+
 	if plottype != "pie":
 		sizes = [sizes]
 
@@ -318,7 +328,7 @@ else: #generic multi-column input
 	if header:
 		for line in sys.stdin: # header
 			pline = line.strip("\r\n").decode(inputencoding).split(tabulator)
-			
+
 			plines = pline[0].split(':')
 			if len(plines) == 1:
 				if len(pline)<3:
@@ -339,7 +349,7 @@ else: #generic multi-column input
 
 	if secondorder == [] and (labelx is not None): #simplified scatter input
 		scats = {}
-		
+
 		for line in sys.stdin: #values
 			data = line.strip("\r\n").decode(inputencoding).split(tabulator)
 
@@ -348,7 +358,7 @@ else: #generic multi-column input
 			if len(data) != 3:
 				badline(line)
 				continue
-				
+
 			if data[2] not in scats:
 				scats[data[2]] = []
 
@@ -357,7 +367,7 @@ else: #generic multi-column input
 		for a in scats:
 			secondorder.append(a)
 			sizes.append([])
-		
+
 		i = -1
 		for b in scats:
 			i = i+1
@@ -366,7 +376,7 @@ else: #generic multi-column input
 				for j in range(0,len(scats)):
 					sizes[j].append(y if i==j else None)
 
-	
+
 	else:
 		for line in sys.stdin: #values
 			data = line.strip("\r\n").decode(inputencoding).split(tabulator)
@@ -377,13 +387,13 @@ else: #generic multi-column input
 			if len(data) != len(secondorder)+1:
 				badline(line)
 				continue
-			
+
 			labels.append(data[0])
 			del data[0]
-			
+
 			while len(data) > len(sizes): # if there was no header, do it manually
 				sizes.append([])
-				
+
 			for i,d in enumerate(data):
 				try:
 					sizes[i].append(float(d))
@@ -424,7 +434,7 @@ if plottype == "pie":
 	if sizesp[-1] < 0:
 		sizesp[sizesp.index(max(sizesp))] -= sizesp[-1]
 		sizesp[-1] = 0.0
-	
+
 	labels = [('{0} - {1:1.'+str(decimals)+'f} %').decode(inputencoding).format(i,j) for i,j in zip(labels, sizesp)]
 
 	pie_wedge_collection = plt.pie(sizes, explode=None, shadow=False, startangle=90)
@@ -435,11 +445,11 @@ if plottype == "pie":
 		pie_wedge.set_alpha(alpha)
 
 	plt.legend(labels, title=labelx, **legendsettings)
-	
+
 	plt.axis('equal')
 
 elif "bar" in plottype or "plot" in plottype:
-	
+
 	fig1, ax1 = plt.subplots(figsize=(24,8))
 
 	N = len(labels)
@@ -449,7 +459,7 @@ elif "bar" in plottype or "plot" in plottype:
 	items = []
 
 	if "bar" not in plottype:
-		try:	
+		try:
 			labels = map(float,labels)
 		except:
 			pass
@@ -458,16 +468,16 @@ elif "bar" in plottype or "plot" in plottype:
 			labels = map(dateutil.parser.parse,labels)
 		except:
 			pass
-				
+
 	for i,data in enumerate(sizes):
 		if "bar" in plottype:
 			if topbar:
 				items.append(ax1.bar(ind, data, width, color=colors[i], align='center', bottom=bottom, edgecolor=edgecolor, alpha=alpha))
 				bottom = [x + y for x, y in zip(bottom, data)]
 			else:
-				realwidth = width/len(sizes)		
+				realwidth = width/len(sizes)
 				items.append(ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data, realwidth*(1+overlay), color=colors[i], align='center', edgecolor=edgecolor, alpha=alpha))
-			
+
 				if fit and len(data) > 1:
 					fitp = np.polyfit(range(0,len(labels)),data,fit)
 					pf = np.poly1d(fitp)
@@ -486,14 +496,14 @@ elif "bar" in plottype or "plot" in plottype:
 				items.append(ax1.scatter(labels, data, color=colors[i], linewidth=3, s=50.0, marker='x', alpha=alpha))
 			else:
 				items.append(ax1.plot(labels, data, color=colors[i], linewidth=3, marker='o' if len(dataz)<=100 else None, markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha )[0])
-	
+
 			if fit and len(dataz) > 1 and len(labelsz) > 1:
 				fitp = np.polyfit(range(0,len(labelsz)),dataz,fit)
 				pf = np.poly1d(fitp)
 				ax1.plot(labelsz,pf(range(0,len(labelsz))), color=colors[i], linewidth=1, linestyle='--')
-	
+
 	ax1.set_axisbelow(True)
-	
+
 	if labely is not None:
 		ax1.set_ylabel(labely)
 	if labelx is not None:
@@ -512,7 +522,7 @@ elif "bar" in plottype or "plot" in plottype:
 			ax1.set_xlim(left=min(labels)-0.5, right=max(labels)+0.5)
 		except:
 			pass
-			
+
 		try: #datetime
 			maxi = recursive(max,labels)
 			mini = recursive(min,labels)
@@ -520,10 +530,10 @@ elif "bar" in plottype or "plot" in plottype:
 			ax1.set_xlim(left=min(labels) - padding, right=max(labels) + padding)
 		except:
 			pass
-			
+
 		maxi = recursive(max,sizes)
 		mini = recursive(min,sizes)
-		
+
 		if "log" not in modifiers:
 			ax1.set_ylim(bottom=mini - (maxi-mini)*0.02, top=maxi + (maxi-mini)*0.02)
 
@@ -534,7 +544,7 @@ elif "bar" in plottype or "plot" in plottype:
 
 	if "grid" in modifiers:
 				ax1.grid(linestyle=':', axis='y' if "bar" in plottype else "both")
-				
+
 	if len(secondorder) > 1:
 		if topbar:
 			ax1.legend(items[::-1],secondorder[::-1], title=labellegend, **legendsettings)
@@ -545,7 +555,14 @@ elif "bar" in plottype or "plot" in plottype:
 else:
 	printe("Unknown plottype '%s'. See Usage!"%plottype)
 	exit(4)
-	
+
+
+if "dontload" not in modifiers:
+	try:
+		execfile(postprocfile)
+	except IOError:
+		pass
+
 
 plt.savefig(outfilename, bbox_inches='tight', transparent = "transparent" in modifiers)
 
