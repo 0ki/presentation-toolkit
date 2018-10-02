@@ -1,4 +1,5 @@
 #!/usr/bin/python2
+#!/usr/bin/python2
 
 '''
 TODO:
@@ -31,6 +32,32 @@ legendsettings = {
 	'loc'            : "upper left",
 	'fontsize'       : font['size'], #no auto-resize
 	'frameon'        : False
+}
+
+wedgestyle = {
+ 'shadow': False,
+ 'startangle': 90
+}
+
+fitstyle = {
+	'linewidth': 1,
+	'linestyle': '--'
+}
+
+barstyle = {
+}
+
+scatterstyle = {
+	'linewidth':3,
+	's': 50.0,
+	'marker': 'x'
+}
+
+plotstyle = {
+	'linewidth': 3,
+	'linestyle': '-',
+	'marker': 'o',
+	'markersize': 10,
 }
 
 colors_ = [                # Stephen Few, Show Me the Numbers
@@ -378,13 +405,17 @@ else: #generic multi-column input
 
 
 	else:
+		correctlen = len(secondorder) + 1
 		for line in sys.stdin: #values
 			data = line.strip("\r\n").decode(inputencoding).split(tabulator)
 
 			if len(data) == 0 or line.strip() == '':
 				continue
 
-			if len(data) != len(secondorder)+1:
+			if correctlen == 1 and not header:
+				correctlen = len(data)
+
+			if len(data) != correctlen:
 				badline(line)
 				continue
 
@@ -437,7 +468,7 @@ if plottype == "pie":
 
 	labels = [('{0} - {1:1.'+str(decimals)+'f} %').decode(inputencoding).format(i,j) for i,j in zip(labels, sizesp)]
 
-	pie_wedge_collection = plt.pie(sizes, explode=None, shadow=False, startangle=90)
+	pie_wedge_collection = plt.pie(sizes, **wedgestyle)
 
 	for i,pie_wedge in enumerate(pie_wedge_collection[0]):
 		pie_wedge.set_edgecolor(edgecolor)
@@ -472,16 +503,16 @@ elif "bar" in plottype or "plot" in plottype:
 	for i,data in enumerate(sizes):
 		if "bar" in plottype:
 			if topbar:
-				items.append(ax1.bar(ind, data, width, color=colors[i], align='center', bottom=bottom, edgecolor=edgecolor, alpha=alpha))
+				items.append(ax1.bar(ind, data, width, color=colors[i], align='center', bottom=bottom, edgecolor=edgecolor, alpha=alpha, **barstyle))
 				bottom = [x + y for x, y in zip(bottom, data)]
 			else:
 				realwidth = width/len(sizes)
-				items.append(ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data, realwidth*(1+overlay), color=colors[i], align='center', edgecolor=edgecolor, alpha=alpha))
+				items.append(ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data, realwidth*(1+overlay), color=colors[i], align='center', edgecolor=edgecolor, alpha=alpha, **barstyle))
 
 				if fit and len(data) > 1:
 					fitp = np.polyfit(range(0,len(labels)),data,fit)
 					pf = np.poly1d(fitp)
-					ax1.plot(ind,pf(range(0,len(labels))), color=colors[i], linewidth=1, linestyle='--')
+					ax1.plot(ind,pf(range(0,len(labels))), color=colors[i], alpha=alpha, **fitstyle)
 
 		else: #plot
 
@@ -493,14 +524,14 @@ elif "bar" in plottype or "plot" in plottype:
 					dataz.append(z)
 
 			if "scatter" in plottype:
-				items.append(ax1.scatter(labels, data, color=colors[i], linewidth=3, s=50.0, marker='x', alpha=alpha))
+				items.append(ax1.scatter(labels, data, color=colors[i], alpha=alpha, **scatterstyle))
 			else:
-				items.append(ax1.plot(labels, data, color=colors[i], linewidth=3, marker='o' if len(dataz)<=100 else None, markeredgecolor=edgecolor, drawstyle='steps-post' if 'stagger' in plottype else 'default', markersize=10, alpha=alpha )[0])
+				items.append(ax1.plot(labels, data, color=colors[i], alpha=alpha, drawstyle='steps-post' if 'stagger' in plottype else 'default', markeredgecolor=edgecolor, **dict(plotstyle.items() + {'marker': None}.items() if len(dataz)>100 else []))[0])
 
 			if fit and len(dataz) > 1 and len(labelsz) > 1:
 				fitp = np.polyfit(range(0,len(labelsz)),dataz,fit)
 				pf = np.poly1d(fitp)
-				ax1.plot(labelsz,pf(range(0,len(labelsz))), color=colors[i], linewidth=1, linestyle='--')
+				ax1.plot(labelsz,pf(range(0,len(labelsz))), color=colors[i], alpha=alpha, **fitstyle)
 
 	ax1.set_axisbelow(True)
 
