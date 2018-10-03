@@ -13,6 +13,7 @@ opener          = "xdg-open"
 tmpdir          = "/tmp/"
 inputencoding   = "utf-8"
 otherlabel      = "(other)"
+unnamedlabel	= "<line #%i>"
 alpha           = 0.8
 decimals        = 1    #for piechart percentage
 width           = 0.8  # proportion of horizontal estate covered by bars
@@ -376,14 +377,15 @@ elif "count" in plottype or plottype == "pie":
 
 		if len(data) == 0 or line.strip() == '':
 			continue
-		if len(data) != 2:
-			badline(line)
-			continue
+		if len(data) == 1:
+			data.append('')
+
+		assert(len(data) == 2)
 
 		if len(labels) > limit_vertical-2:
 			other = other + float(data[0])
 		else:
-			labels.append(data[1])
+			labels.append(unnamedlabel % (len(labels)+1) if data[1]=='' else data[1])
 			sizes.append(float(data[0]))
 
 	if other != 0 :
