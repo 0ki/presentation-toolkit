@@ -26,7 +26,7 @@ fitstyle = {
 }
 
 scatterstyle = {
-	's': 200.0,
+	's': 150.0,
 	'marker': 'o'
 }
 

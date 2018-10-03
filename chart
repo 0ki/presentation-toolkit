@@ -128,6 +128,20 @@ def badheader(l):
 	printe("Error: Header '%s' does not have the right number of fields."%l.strip("\n\r"))
 	exit(1)
 
+def remap(d, **kwargs):
+	r = dict(d)
+	if '__direction' in kwargs and kwargs['__direction'] > 1:
+		rev=1
+	else:
+		rev=0
+	for key in kwargs:
+		if key[0:2]=='__':
+			continue
+		if rev or key not in d:
+			r[key] = kwargs[key]
+	return r
+
+
 def autolabel(rects):
 	for rect in rects:
 		height = rect.get_height()
@@ -498,7 +512,7 @@ if plottype == "pie":
 
 	labels = [('{0} - {1:1.'+str(decimals)+'f} %').decode(inputencoding).format(i,j) for i,j in zip(labels, sizesp)]
 
-	plt.legend(labels, title=labelx, **legendsettings)
+	plt.legend(labels, **remap(legendsettings, title=labelx))
 
 	plt.axis('equal')
 
@@ -541,11 +555,25 @@ elif "bar" in plottype or "plot" in plottype:
 
 		if "bar" in plottype:
 			if topbar:
-				items.append(ax1.bar(ind, data, width, color=col, align='center', bottom=bottom, edgecolor=edgecolor, alpha=alpha, **barstyle))
+				items.append(ax1.bar(ind, data, width,
+					**remap(barstyle,
+					color=col,
+					align='center',
+					bottom=bottom,
+					edgecolor=edgecolor,
+					alpha=alpha )))
+
 				bottom = [x + y for x, y in zip(bottom, data)]
 			else:
 				realwidth = width/len(sizes)
-				items.append(ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data,width - (len(sizes) -1)*overlay*realwidth if overlay else realwidth, color=col, align='center', edgecolor=edgecolor, alpha=alpha, **barstyle))
+				items.append(
+					ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data,
+					width - (len(sizes) -1)*overlay*realwidth if overlay else realwidth,
+					**remap(barstyle,
+					color=col,
+					align='center',
+					edgecolor=edgecolor,
+					alpha=alpha )))
 
 			if topbar:
 				labelsz = ind
@@ -563,9 +591,20 @@ elif "bar" in plottype or "plot" in plottype:
 					dataz.append(z)
 
 			if "scatter" in plottype:
-				items.append(ax1.scatter(labels, data, color=col, alpha=alpha, **scatterstyle))
+				items.append(ax1.scatter(labels, data,
+					**remap(scatterstyle,
+					color=col,
+					alpha=alpha )))
+
 			else:
-				items.append(ax1.plot(labels, data, color=col, alpha=alpha, drawstyle='steps-post' if 'stagger' in plottype else 'default', markeredgecolor=edgecolor, **dict(plotstyle.items() + ({'marker': None}.items() if len(dataz)>plotmarkerlimit else [])))[0])
+				items.append(ax1.plot(labels, data,
+				**remap(remap(plotstyle,
+				color=col,
+				alpha=alpha,
+				drawstyle='steps-post' if 'stagger' in plottype else 'default',
+				markeredgecolor=edgecolor),
+				__direction=2,
+				marker=None if len(dataz)>plotmarkerlimit else plotstyle.get('marker') ))[0])
 
 
 		if fit and len(dataz) > 1 and len(labelsz) > 1:
@@ -586,7 +625,10 @@ elif "bar" in plottype or "plot" in plottype:
 				labelsz = np.linspace(min(labelszs),max(labelszs),100)
 				labelszs = labelsz
 
-			ax1.plot(labelsz,pf(labelszs), color=col[0] if type(col) is list else col, alpha=alpha, **fitstyle)
+			ax1.plot(labelsz,pf(labelszs),
+			**remap(fitstyle,
+			color=col[0] if type(col) is list else col,
+			alpha=alpha))
 
 
 	ax1.set_axisbelow(True)
@@ -630,13 +672,15 @@ elif "bar" in plottype or "plot" in plottype:
 	ax1.xaxis.set_label_coords(1.05, 0.02)
 
 	if "grid" in modifiers:
-				ax1.grid(axis='y' if "bar" in plottype else "both", **gridstyle)
+				ax1.grid(**remap(gridstyle,
+					which="both" if "log" in modifiers else "major",
+					axis='y' if "bar" in plottype else "both" ))
 
 	if len(secondorder) > 1:
 		if topbar:
-			ax1.legend(items[::-1],secondorder[::-1], title=labellegend, **legendsettings)
+			ax1.legend(items[::-1],secondorder[::-1], **remap(legendsettings, title=labellegend))
 		else:
-			ax1.legend(items, secondorder, title=labellegend, **legendsettings)
+			ax1.legend(items, secondorder, **remap(legendsettings, title=labellegend))
 
 
 else:
