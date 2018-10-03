@@ -523,6 +523,10 @@ elif "bar" in plottype or "plot" in plottype:
 			labels = map(dateutil.parser.parse,labels)
 		except:
 			pass
+			
+		if "log" in modifiers: # log auto-scale depends on data - https://github.com/matplotlib/matplotlib/issues/7413
+			ax1.set_yscale('log')
+
 
 	for i,data in enumerate(sizes):
 
@@ -624,9 +628,6 @@ elif "bar" in plottype or "plot" in plottype:
 		plt.xticks(rotation=33)
 
 	ax1.xaxis.set_label_coords(1.05, 0.02)
-
-	if "log" in modifiers:
-		ax1.set_yscale('log')
 
 	if "grid" in modifiers:
 				ax1.grid(axis='y' if "bar" in plottype else "both", **gridstyle)
