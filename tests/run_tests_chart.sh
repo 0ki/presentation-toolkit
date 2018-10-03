@@ -13,8 +13,8 @@ function run(){
 	id="$1"
 	shift 2
 	#echo "  --- Running 'cat in/$in | chart $type out/$out $* $SETS'"
-	echo "  --- ($id) $type : $in -> $out"
-	cat in/$in | chart $type out/$out $* $SETS
+	echo -n "  --- ($id) $type : $in -> $out lines:$(wc -l in/$in | cut -d \  -f 1) sec:"
+	cat in/$in | /usr/bin/time -f %e chart $type out/$out $* $SETS
 }
 
 shopt -s extglob
@@ -25,6 +25,7 @@ esac
 
 SETS=$*
 errors=""
+diffs=""
 r=0
 for i in $(seq -f "%02g" 1 15); do
 	[ $tests -eq 0 -o $tests -eq $i ] || continue
@@ -46,17 +47,31 @@ for i in $(seq -f "%02g" 1 15); do
 		*) continue
 	esac
 	r=$(( $r + 1 ))
+	mv out/{,old.}chart.$i.png
 	run $i $s 2>&1
 	status=$?
-	[ $status -ne 0 ] && errors="$errors $i:$status"
+	if [ $status -eq 0 ]; then
+		[ ! -z "$(diff out/{,old.}chart.$i.png)" ] && diffs="$diffs $i"
+		rm out/old.chart.$i.png
+	else
+		errors="$errors $i:$status"
+		mv out/{old.,}chart.$i.png
+	fi
 done
 
 echo "  --- DONE"
-res="${errors//[^ ]}"
-res="${#res}"
-o=$(($r-$res))
-echo Completed $o/$r
+eres="${errors//[^ ]}"
+eres="${#eres}"
+dres="${diffs//[^ ]}"
+dres="${#dres}"
+o=$(($r-$eres))
+
+echo Completed $o/$r, $eres errors, $dres files changed
 echo
-if [ $res -gt 0 ]; then
+if [ $eres -gt 0 ]; then
 	echo $errors | sed -E 's/([0-9]+):([0-9]+)\s*/Test \1 failed with return code \2\n/g'
+fi
+
+if [ $dres -gt 0 ]; then
+	echo Te following tests now produce different results: $diffs
 fi
