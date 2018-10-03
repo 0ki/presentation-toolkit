@@ -29,11 +29,20 @@ font = {
 }
   
 
-legendsettings = {
+legendstyle = {
 	'bbox_to_anchor' : (1.0,1.025),
 	'loc'            : "upper left",
 	'fontsize'       : font['size'], #no auto-resize
 	'frameon'        : False
+}
+
+labelstyle = {
+	'ha': 'center',
+	'va': 'center',
+}
+
+labeleffects = {
+	'linewidth': 2
 }
 
 wedgestyle = {
@@ -164,8 +173,10 @@ def autolabel(rects):
 		if height <= 0:
 			continue
 		ax1.text(rect.get_x() + rect.get_width()/2., rect.get_y() + height/2 - height*0.05,
-                '%d' % int(height),
-				ha='center', va='center', color=plt.rcParams['figure.facecolor']).set_path_effects([PathEffects.withStroke(linewidth=2, foreground=plt.rcParams['text.color'])])
+                '%d' % int(height), **remap(labelstyle,
+				color=plt.rcParams['figure.facecolor'])).set_path_effects([PathEffects.withStroke(
+					**remap(labeleffects,
+						foreground=plt.rcParams['text.color']))])
 
 
 def multdelta(td,co):
@@ -532,7 +543,7 @@ if plottype == "pie":
 
 	labels = [('{0} - {1:1.'+str(decimals)+'f} %').decode(inputencoding).format(i,j) for i,j in zip(labels, sizesp)]
 
-	plt.legend(labels, **remap(legendsettings, title=labelx))
+	plt.legend(labels, **remap(legendstyle, title=labelx))
 
 	plt.axis('equal')
 
@@ -703,9 +714,9 @@ elif "bar" in plottype or "plot" in plottype:
 
 	if len(secondorder) > 1:
 		if topbar:
-			ax1.legend(items[::-1],secondorder[::-1], **remap(legendsettings, title=labellegend))
+			ax1.legend(items[::-1],secondorder[::-1], **remap(legendstyle, title=labellegend))
 		else:
-			ax1.legend(items, secondorder, **remap(legendsettings, title=labellegend))
+			ax1.legend(items, secondorder, **remap(legendstyle, title=labellegend))
 
 
 else:

@@ -23,9 +23,14 @@ font.update({
  'weight' : 'normal',
 })
 
-legendsettings.update({
- 'fontsize' : legendsettings['fontsize']-4
+legendstyle.update({
+ 'fontsize' : legendstyle['fontsize']-4
 })
+
+labelstyle.update({
+ 'fontsize': 26
+})
+
 
 fitstyle.update({
 	'linewidth': 4,
