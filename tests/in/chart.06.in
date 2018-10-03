@@ -1,0 +1,4 @@
+OS:percentage:content	userfiles	systemfiles	malware	cats	dogs
+Windows					30			50			15		0		5
+Linux					75			15			0		10		0
+OSX						47			40			0		8		5

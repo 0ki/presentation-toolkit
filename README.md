@@ -14,6 +14,9 @@ image-invert /tmp/test.png
 termshot /tmp/test2.png hexcolordump -as /tmp/test.png 
 ```
 
+Take a look in ./test/out and ./test/in to continue your quick-start tour. Those are used for regression testing, but are super useful to learn to use the tools (not that they need any learning).
+
+
 ### Is there anything else?
 Yes!
 
