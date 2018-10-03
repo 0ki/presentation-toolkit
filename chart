@@ -6,6 +6,7 @@ TODO:
 	- add label modifier support for other plottypes
 	- refactor code into function blocks
 '''
+
 conffile        = "chart_conf.py"
 postprocfile    = "chart_post.py"
 opener          = "xdg-open"
@@ -27,7 +28,6 @@ font = {
 }
   
 
-
 legendsettings = {
 	'bbox_to_anchor' : (1.0,1.025),
 	'loc'            : "upper left",
@@ -37,16 +37,17 @@ legendsettings = {
 
 wedgestyle = {
  'shadow': False,
- 'startangle': 90
+ 'startangle': 180,
+ 'counterclock': False
 }
 
 barstyle = {
 }
 
 scatterstyle = {
-	'linewidth':3,
-	's': 50.0,
-	'marker': 'x'
+	'linewidth': 1,
+	's': 80.0,
+	'marker': 'X'
 }
 
 plotstyle = {
@@ -63,6 +64,11 @@ fitstyle = {
 
 gridstyle = {
 	'linestyle': ':'
+}
+
+gridstyleminor = {
+	'linestyle': ':',
+	'alpha': 0.5
 }
 
 colors_ = [                # Stephen Few, Show Me the Numbers
@@ -129,6 +135,7 @@ def badheader(l):
 	exit(1)
 
 def remap(d, **kwargs):
+	# like update() but ... better? :D
 	r = dict(d)
 	if '__direction' in kwargs and kwargs['__direction'] > 1:
 		rev=1
@@ -604,7 +611,7 @@ elif "bar" in plottype or "plot" in plottype:
 				drawstyle='steps-post' if 'stagger' in plottype else 'default',
 				markeredgecolor=edgecolor),
 				__direction=2,
-				marker=None if len(dataz)>plotmarkerlimit else plotstyle.get('marker') ))[0])
+				marker='None' if len(dataz)>plotmarkerlimit else plotstyle.get('marker') ))[0])
 
 
 		if fit and len(dataz) > 1 and len(labelsz) > 1:
@@ -672,9 +679,14 @@ elif "bar" in plottype or "plot" in plottype:
 	ax1.xaxis.set_label_coords(1.05, 0.02)
 
 	if "grid" in modifiers:
-				ax1.grid(**remap(gridstyle,
-					which="both" if "log" in modifiers else "major",
-					axis='y' if "bar" in plottype else "both" ))
+		ax1.grid(**remap(gridstyle,
+			which="major",
+			axis='y' if "bar" in plottype else "both" ))
+
+		if "log" in modifiers:
+			ax1.grid(**remap(gridstyleminor,
+				which="minor",
+				axis='y' if "bar" in plottype else "both" ))
 
 	if len(secondorder) > 1:
 		if topbar:

@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-intellicolors = {
+colors_[0] = ['#404040','#B0B0B0'] # give me a darker gray
+
+edgecolors_ = ['#000000', '#FFFFFF']
+
+intellicolors.update ({
 	'cats':[ '#904617' , '#f3ddc6' ],
 	'dogs':[ '#35343c' , '#ae673b' ],
 	'water': '#1040a4',
@@ -11,22 +15,49 @@ intellicolors = {
 	'ledus': '#a5f2f3',
 	'zemenes': '#fc5a8d',
 	u'ķirši': '#790604',
-}
+})
 
 font_preference = ['Verdana', 'Sans']
 
-font = {
+font.update({
  'weight' : 'normal',
- 'size'   : 20
-}
-  
-fitstyle = {
+})
+
+legendsettings.update({
+ 'fontsize' : legendsettings['fontsize']-4
+})
+
+fitstyle.update({
 	'linewidth': 4,
 	'linestyle': '--'
-}
+})
 
-scatterstyle = {
+barstyle.update({
+	'hatch': '/\\'
+})
+
+wedgestyle.update({
+	'startangle': -45
+})
+
+scatterstyle.update({
 	's': 150.0,
-	'marker': 'o'
-}
+	'marker': 'o',
+	'edgecolors': 'none'
+})
+
+plotstyle.update({
+	'marker': 'H'
+})
+
+# gridstyle.update({})
+# gridstyleminor.update({})
+
+
+limit_vertical = 7
+alpha = 0.6
+
+plt.rcParams['hatch.linewidth']=0.2
+
+
 
