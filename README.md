@@ -14,7 +14,11 @@ image-invert /tmp/test.png
 termshot /tmp/test2.png hexcolordump -as /tmp/test.png 
 ```
 
-Take a look in ./test/out and ./test/in to continue your quick-start tour. Those are used for regression testing, but are super useful to learn to use the tools (not that they need any learning).
+Take a look at [nice output images](./tests/out/) and [respective input samples](./tests/in/) to continue your quick-start tour. Those are used for regression testing, but are super useful to learn to use the tools (not that they need any learning).
+
+![Output example (chart)](tests/out/chart.11.png "Scatter plot on a grid with 3rd order trendlines")
+
+![Output example (chart)](tests/out/chart.14.png "Scatter plot with translucent points on logarithmic scale")
 
 
 ### Is there anything else?
