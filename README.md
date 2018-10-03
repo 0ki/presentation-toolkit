@@ -11,6 +11,7 @@ echo 42 | chart pie
 ( echo 42 the answer; echo 113 ; echo 69) | chart barcount noheader
 wc -l /etc/* | sort -nr |chart barcount noheader
 cat /proc/vmstat | sort -k2 -nr | head -10 | chart bar noheader
+(echo -n param; cat /proc/interrupts)  |chart bar ignoreextra
 netstat -tu|grep :|awk '{print $5}' |sort | uniq -c | sort -nr | tr : \  |chart summarybar noheader
 
 dd if=/dev/urandom count=1000 | tr -dc 0-9 | sed -E 's/(..).(...).(...)./\1 \2 \3\n/g' | head -15 | chart plotscatter grid noheader cubefit dark
