@@ -1,6 +1,11 @@
 # presentation-toolkit
-Sleek tools to create and show presentations. These tools work on Linux, but can be made to work on other platforms too with some or a lot of effort (depending on the tool).
+This software repository aims to provide CLI-based tools to facilitate preparation of presentations.
 
+**It differs from other alternatives since this software tries to follow the [UNIX philosophy](http://www.linfo.org/unix_philosophy.html) as close as possible while still allowing the end result to look nice and pleasant to the eye.**
+
+These tools work on Linux, but can be made to work on other platforms too with some or a lot of effort (depending on the tool).
+
+All pull requests and issues welcome.
 
 
 ![Output example (chart)](chart_sample.png "Example output of 'chart'")
