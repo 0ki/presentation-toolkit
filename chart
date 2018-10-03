@@ -100,6 +100,7 @@ import matplotlib.dates as mpld
 import numpy as np
 import sys,os,warnings,random,dateutil,datetime
 from uuid import uuid4
+from collections import OrderedDict
 
 def recursive(fun,value):
 	resolve = []
@@ -395,7 +396,7 @@ else: #generic multi-column input
 			break
 
 	if secondorder == [] and (labelx is not None): #simplified scatter input
-		scats = {}
+		scats = OrderedDict()
 
 		for line in sys.stdin: #values
 			data = line.strip("\r\n").decode(inputencoding).split(tabulator)
