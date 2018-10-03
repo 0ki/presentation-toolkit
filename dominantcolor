@@ -1,0 +1,5 @@
+#!/bin/bash
+n=1
+[ -z "$1" ] && echo "Usage: $0 <filename.image> [2]" && exit 1
+[ "$2" == "2" ] && n=2
+convert "$1" -flatten +dither -colors 5 -define histogram:unique-colors=true -format "%c"  histogram:info:|sort -nr|cut -d \# -f 2|cut -d \  -f 1|grep -v ^[0F].[0F].[0F].$ |grep -vE "^(..)\1\1$" | head -$n
