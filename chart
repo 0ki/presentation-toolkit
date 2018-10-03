@@ -13,7 +13,7 @@ opener          = "xdg-open"
 tmpdir          = "/tmp/"
 inputencoding   = "utf-8"
 otherlabel      = "(other)"
-unnamedlabel	= "<line #%i>"
+unnamedlabel	= "<row #%i>"
 alpha           = 0.8
 decimals        = 1    #for piechart percentage
 width           = 0.8  # proportion of horizontal estate covered by bars
@@ -135,6 +135,14 @@ def badheader(l):
 	printe("Error: Header '%s' does not have the right number of fields."%l.strip("\n\r"))
 	exit(1)
 
+def goodlen(ar,l):
+	if len(ar) < l or (len(ar) > l and "ignoreextra" not in modifiers):
+		badline(line)
+		return False
+	while len(ar) > l:
+		ar.pop()
+	return True
+
 def remap(d, **kwargs):
 	# like update() but ... better? :D
 	r = dict(d)
@@ -170,7 +178,7 @@ if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: dontload, light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit")
+	printe("modifiers: dontload, light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit, ignoreextra")
 	printe()
 	exit(3)
 
@@ -314,19 +322,23 @@ if "summary" in plottype:
 
 			if len(pline) == 2:
 				pline.append(None)
+
+			if len(pline) != 3:
+				badheader(line)
+
 			labely,labelx,labellegend = pline
 			break
 
 
 	for line in sys.stdin: #values
 		data = line.strip("\r\n").decode(inputencoding).split(tabulator,2)
-		if labellegend is None:
+		if labellegend is None and len(data) != 3:
 			data.append(None)
 
 		if len(data) == 0 or line.strip() == '':
 			continue
-		if len(data) != 3:
-			badline(line)
+
+		if not goodlen(data,3):
 			continue
 
 		if data[2] not in secondorder:
@@ -426,8 +438,8 @@ else: #generic multi-column input
 
 			if len(data) == 0 or line.strip() == '':
 				continue
-			if len(data) != 3:
-				badline(line)
+
+			if not goodlen(data,3):
 				continue
 
 			if data[2] not in scats:
@@ -459,8 +471,7 @@ else: #generic multi-column input
 			if correctlen == 1 and not header:
 				correctlen = len(data)
 
-			if len(data) != correctlen:
-				badline(line)
+			if not goodlen(data,correctlen):
 				continue
 
 			labels.append(data[0])
@@ -558,7 +569,7 @@ elif "bar" in plottype or "plot" in plottype:
 		else:
 			col = colors[i]
 
-		if len(secondorder)>1:
+		if len(secondorder)>i:
 			if secondorder[i] in intellicolors:
 				col = intellicolors[secondorder[i]]
 
