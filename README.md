@@ -22,6 +22,7 @@ netstat -tu|grep :|awk '{print $5"/"$1}' |sort | uniq -c | sort -nr | tr : \  |c
 dd if=/dev/urandom count=1000 | tr -dc 0-9 | sed -E 's/(..).(...).(...)./\1 \2 \3\n/g' | head -15 | chart plotscatter grid noheader cubefit dark
 dd if=/dev/urandom count=1000 | tr -dc 0-9 | sed -E 's/(..).(...).(...)./\1 \2 \3\n/g' | head -15 | chart sidebar noheader squarefit overlay dark
 dd if=/dev/urandom count=1000 | tr -dc 0-9 | sed -E 's/(..).(...).(...)./\1 \2 \3\n/g' | head -15 | chart pie /tmp/test.png noheader dark show
+dominantcolor /tmp/test.png 3
 image-invert /tmp/test.png 
 termshot /tmp/test2.png hexcolordump -as /tmp/test.png 
 ```
