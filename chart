@@ -134,6 +134,11 @@ def recursive(fun,value):
 def empty(l):
     return all([empty(i) for i in l]) if isinstance(l, list) else l is None
 
+def underspace(st):
+	if not isinstance(st,basestring):
+		return st
+	return st.replace("_"," ") if "underspace" in modifiers else st
+
 def printe(st=""):
 	sys.stderr.write("%s\n"%st)
 
@@ -189,7 +194,7 @@ if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: dontload, light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit, ignoreextra")
+	printe("modifiers: dontload, light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit, ignoreextra, underspace")
 	printe()
 	exit(3)
 
@@ -517,6 +522,12 @@ if "plot" in plottype:
 	colors.append(edgecolor)
 else:
 	colors.append(finalcolor)
+
+labels = map(underspace, labels)
+secondorder = map(underspace, secondorder)
+labelx = underspace(labelx)
+labely = underspace(labely)
+labellegend = underspace(labellegend)
 
 if plottype == "pie":
 

@@ -36,8 +36,8 @@ for i in $(seq -f "%02g" 1 15); do
 		04) s="bar dontload fit" ;;
 		05) s="barcount noheader labels" ;;
 		06) s="topbar labels transparent" ;;
-		07) s="topbar squarefit crystal" ;;
-		08) s="summarybar dontload" ;;
+		07) s="topbar squarefit crystal underspace" ;;
+		08) s="summarybar dontload underspace" ;;
 		09) s="plot tabs grid dark" ;;
 		10) s="plotstaggered tabs dark transparent" ;;
 		11) s="plotscatter tabs grid cubefit dark dontload" ;;
