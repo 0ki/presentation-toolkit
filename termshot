@@ -2,13 +2,32 @@
 set -e
 PIDFILE=/tmp/termshot.$$
 [ -z "$WINDOWID" ] && echo \$WINDOWID is not set. Check you terminal emulator. && exit 2
-[ -z $2 ] && echo "Usage: $0 /path/to/destination_image.png command [arguments]" && exit 1
+
+sc=0
+
+while [ "${1:0:1}" == "-" ]; do
+	case ${1:1} in
+		c) sc=1 ;;
+		*) echo "Unknown switch; see usage"; exit 1 ;;
+	esac
+	shift
+done
+
+[ -z $2 ] && echo "Usage: $0 [-c] /path/to/destination_image.png command [arguments]" && exit 1
 
 clear
 sleep 0.2
+
 file=$1
 shift
-echo "clear; $*; touch $PIDFILE; sleep 1; exit" | script -q & #preserve colors
+
+if [ $sc > 0 ]; then
+	[ "$EUID" == "0" ] && q="\#" || q="\$"
+	echo "clear; echo $q '$*'; $*; touch $PIDFILE; sleep 1; exit" | script -q & #preserve colors
+else
+	echo "clear; $*; touch $PIDFILE; sleep 1; exit" | script -q & #preserve colors
+fi
+
 while [ ! -f $PIDFILE ]; do
 	sleep 0.1
 done
