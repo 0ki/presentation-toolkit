@@ -8,6 +8,8 @@ These tools work on Linux, but can be made to work on other platforms too with s
 All pull requests and issues welcome.
 
 
+![Output example (hexcolordump)](hexcolordump_sample.png "Example usage of 'hexcolordump'")
+
 ![Output example (chart)](chart_sample.png "Example output of 'chart'")
 
 #### Here's a quick guide to get you started in life (try some of these out!)
