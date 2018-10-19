@@ -150,7 +150,7 @@ if not args.everything:
 		print_end = max(map(max,colors))
 		print_start = int(print_start/width) * width
 		print_end = int((print_end)/width) * width
-		
+
 		try: #not possible with stdin
 			infile.seek(print_start)
 			offset = print_start
@@ -163,7 +163,7 @@ while True:
 		offset += len(data)
 		continue
 		
-	if not len(data) or print_end and offset > print_end:
+	if not len(data) or print_end is not None and offset > print_end:
 		break
 	
 	if not args.bare:
