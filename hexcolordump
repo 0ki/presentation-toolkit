@@ -16,13 +16,14 @@ def getDistinctColors(n):
 def printe(st=""):
 	sys.stderr.write("%s\n"%st)
 
-
+def escapeformat(st):
+	return st.replace("{","{{").replace("}","}}")
 
 def fc(x,i,p):
 	if colors:
 		for n,c in enumerate(colors):
 			if p in c:
-				fstr = '{c.bold_white_on_cc%02d}%s{c.reset}' % (n,x)
+				fstr = '{c.bold_white_on_cc%02d}%s{c.reset}' % (n,escapeformat(x))
 				return fstr.format(c=C)
 	
 	if args.nocolors or (len(colors)>0 and not args.autocolors):
@@ -53,8 +54,9 @@ C.use_true_colors()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-w','--width', metavar='int', default='16', help='How many bytes to dump per line')
-parser.add_argument('-a', '--autocolors', action='store_true', help='Enable automatic byte-dependent colors')
+parser.add_argument('-a', '--autocolors', action='store_true', help='Enable automatic byte-dependent colors (even if color groups enabled)')
 parser.add_argument('-n', '--nocolors', action='store_true', help='Disable automatic byte-dependent colors')
+parser.add_argument('-e', '--everything', action='store_true', help='Print all the file (even if color groups enabled)')
 parser.add_argument('-p', dest='colors', type=str, metavar='"1-6,8/7/0x33-0x50"', help='Color specific groups (positions) of bytes in unique colors')
 parser.add_argument('-t', dest='titles', type=str, metavar='"descr1//descr3"', help='Titles for each of the color groups')
 parser.add_argument('--bare', action='store_true', help='Just the dump')
@@ -78,8 +80,11 @@ if args.titles:
 else:
 	titles = []
 colors = []
+
+i = -1
+
 if args.colors:
-		t_colors = re.sub('[^0-9A-Za-z,-]','/',args.colors).split("/")
+		t_colors = re.sub('[^0-9A-Za-z,+-]','/',args.colors).split("/")
 		for t_color in t_colors:
 			if t_color == '' :
 				continue
@@ -88,20 +93,33 @@ if args.colors:
 			for positions in t_color:
 				positions = positions.split("-")
 				if len(positions) == 1:
+					positions = positions[0].split("+")
+					delta = True
+				else:
+					delta = False
+
+				if len(positions) == 1:
 					colors[-1].append(int(positions[0],0))
+					i = int(positions[0],0)
 				elif len(positions) == 2:
-					for i in range(int(positions[0],0), int(positions[1],0)+1):
+					if positions[0] == "":
+						positions[0] = str(i+1)
+
+					for i in range(int(positions[0],0), int(positions[1],0)+  ( int(positions[0],0) if delta else 1 ) ):
 						colors[-1].append(i)
 				else:
 					printe("Syntax error in color specific groups")
 					exit(1)
+
+			if colors[-1] == []:
+				colors.pop()
 
 
 for i,c in enumerate(getDistinctColors(len(colors))):
 	C.update_palette({'cc%02d'%i: c} )
 	if i>=len(titles) or titles[i] == '':
 		continue
-	fstr = '{c.bold_white_on_cc%02d}00{c.reset} - {c.bold_white}%s{c.reset}' % (i,titles[i])
+	fstr = '{c.bold_white_on_cc%02d}00{c.reset} - {c.bold_white}%s{c.reset}' % (i,escapeformat(titles[i]))
 	print fstr.format(c=C) 
 
 
@@ -115,10 +133,22 @@ subs = {
 	0x0d: 'r',
 }
 
+print_start = None
+print_end = None
 offset = 0
+
+if not args.everything:
+	if len(colors) > 0:
+		print_start = min(map(min,colors))
+		print_end = max(map(max,colors))
+		print_start = int(print_start/width) * width
+		print_end = int((print_end)/width) * width
+		infile.seek(print_start)
+		offset = print_start
+
 while True:
 	data = bytearray(infile.read(width))
-	if not len(data):
+	if not len(data) or print_end and offset > print_end:
 		break
 	
 	if not args.bare:
