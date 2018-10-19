@@ -23,7 +23,11 @@ def fc(x,i,p):
 	if colors:
 		for n,c in enumerate(colors):
 			if p in c:
-				fstr = '{c.bold_white_on_cc%02d}%s{c.reset}' % (n,escapeformat(x))
+				if i>=7 and i<=13:
+					ec="red"
+				else:
+					ec="white"
+				fstr = '{c.%s_on_cc%02d}%s{c.reset}' % (ec,n,escapeformat(x))
 				return fstr.format(c=C)
 	
 	if args.nocolors or (len(colors)>0 and not args.autocolors):
