@@ -31,7 +31,10 @@ def fc(x,i,p):
 				return fstr.format(c=C)
 	
 	if args.nocolors or (len(colors)>0 and not args.autocolors):
-		return C.gray90(x)
+		if i>=7 and i<=13:
+			return C.red(x)
+		else:
+			return C.gray90(x)
 	
 	if i == 0 or i == 255:				#0s or 1s
 		return C.bold_red(x)
@@ -61,8 +64,8 @@ parser.add_argument('-w','--width', metavar='int', default='16', help='How many 
 parser.add_argument('-a', '--autocolors', action='store_true', help='Enable automatic byte-dependent colors (even if color groups enabled)')
 parser.add_argument('-n', '--nocolors', action='store_true', help='Disable automatic byte-dependent colors')
 parser.add_argument('-e', '--everything', action='store_true', help='Print all the file (even if color groups enabled)')
-parser.add_argument('-p', dest='colors', type=str, metavar='"1-6,8/7/0x33-0x50"', help='Color specific groups (positions) of bytes in unique colors')
-parser.add_argument('-t', dest='titles', type=str, metavar='"descr1//descr3"', help='Titles for each of the color groups')
+parser.add_argument('-p', dest='colors', type=str, metavar='"1-6,8/7/0x33-0x50/+20"', help='Color specific groups (positions) of bytes in unique colors')
+parser.add_argument('-t', dest='titles', type=str, metavar='"descr1//descr3/descr4"', help='Titles for each of the color groups')
 parser.add_argument('--bare', action='store_true', help='Just the dump')
 parser.add_argument('-s', '--strings', action='store_true', help='Show printable ascii characters')
 parser.add_argument('file', nargs='?', type=argparse.FileType('rb'), default=sys.stdin, help='Filename to read')
@@ -147,11 +150,19 @@ if not args.everything:
 		print_end = max(map(max,colors))
 		print_start = int(print_start/width) * width
 		print_end = int((print_end)/width) * width
-		infile.seek(print_start)
-		offset = print_start
+		
+		try: #not possible with stdin
+			infile.seek(print_start)
+			offset = print_start
+		except:
+			offset = 0
 
 while True:
 	data = bytearray(infile.read(width))
+	if offset < print_start:
+		offset += len(data)
+		continue
+		
 	if not len(data) or print_end and offset > print_end:
 		break
 	
