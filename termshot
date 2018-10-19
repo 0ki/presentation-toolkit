@@ -21,7 +21,7 @@ sleep 0.2
 file=$1
 shift
 
-if [ $sc > 0 ]; then
+if [ $sc -gt 0 ]; then
 	[ "$EUID" == "0" ] && q="\#" || q="\$"
 	echo "clear; echo $q '$*'; $*; touch $PIDFILE; sleep 1; exit" | script -q & #preserve colors
 else
