@@ -10,6 +10,8 @@ All pull requests and issues welcome.
 
 ![Output example (hexcolordump)](hexcolordump_sample.png "Example usage of 'hexcolordump'")
 
+![Output example (image-invert on hexcolordump)](image-invert_sample.png "Example usage of 'image-invert' with transparency")
+
 ![Output example (chart)](chart_sample.png "Example output of 'chart'")
 
 #### Here's a quick guide to get you started in life (try some of these out!)
