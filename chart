@@ -377,7 +377,7 @@ if "summary" in plottype:
 			sizesd[data[1]][data[2]] = float(data[0])
 
 	if len(otherd) > 0 :
-		labels.append("(other)")
+		labels.append(otherlabel)
 		sizesd[otherlabel] = otherd
 
 
@@ -580,8 +580,8 @@ elif "bar" in plottype or "plot" in plottype:
 		except:
 			pass
 			
-		if "log" in modifiers: # log auto-scale depends on data - https://github.com/matplotlib/matplotlib/issues/7413
-			ax1.set_yscale('log')
+	if "log" in modifiers: # log auto-scale depends on data - https://github.com/matplotlib/matplotlib/issues/7413
+		ax1.set_yscale('log')
 
 
 	for i,data in enumerate(sizes):
