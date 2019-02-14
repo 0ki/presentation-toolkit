@@ -35,8 +35,8 @@ for i in $(seq -f "%02g" 1 15); do
 		03) s="sidebar commas overlay" ;;
 		04) s="bar dontload noindex fit" ;;
 		05) s="barcount noheader labels" ;;
-		06) s="topbar labels transparent" ;;
-		07) s="topbar semicolons squarefit crystal underspace" ;;
+		06) s="topbar dontload labels" ;;
+		07) s="topbar semicolons squarefit transparent crystal underspace" ;;
 		08) s="summarybar dontload underspace" ;;
 		09) s="plot tabs grid dark" ;;
 		10) s="plotstaggered tabs dark transparent ignoreextra" ;;

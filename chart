@@ -21,10 +21,10 @@ overlay         = 0.75 # overlay of sidebars
 plotmarkerlimit = 100  # do not add more that this markers to plot
 colorseed       = 8888 #any integer really. this defines additional colors
 
-font_preference = ['Fauna One', 'Monda', 'Verdana', 'Sans']
+font_preference = ['FreeSans', 'Calibri', 'Source Sans Pro', 'DejaVu Sans', 'Fauna One', 'Sans']
 
 font = {
- 'weight' : 'bold',
+ 'weight' : 'normal',
  'size'   : 20
 }
   
@@ -39,6 +39,7 @@ legendstyle = {
 labelstyle = {
 	'ha': 'center',
 	'va': 'center',
+	'fontweight': 'bold'
 }
 
 labeleffects = {
@@ -64,7 +65,7 @@ plotstyle = {
 	'linewidth': 3,
 	'linestyle': '-',
 	'marker': 'o',
-	'markersize': 10,
+	'markersize': 10
 }
 
 fitstyle = {
