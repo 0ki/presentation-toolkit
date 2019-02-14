@@ -194,7 +194,7 @@ if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
 	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: dontload, light, dark, transparent, show, log, header, noheader, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit, ignoreextra, underspace")
+	printe("modifiers: dontload, light, dark, transparent, show, log, header, noheader, noindex, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit, ignoreextra, underspace, unixtime")
 	printe()
 	exit(3)
 
@@ -348,6 +348,7 @@ if "summary" in plottype:
 
 	for line in sys.stdin: #values
 		data = line.strip("\r\n").decode(inputencoding).split(tabulator,2)
+
 		if labellegend is None and len(data) != 3:
 			data.append(None)
 
@@ -427,6 +428,8 @@ else: #generic multi-column input
 	if header:
 		for line in sys.stdin: # header
 			pline = line.strip("\r\n").decode(inputencoding).split(tabulator)
+			if "noindex" in modifiers:
+				pline.insert(0,"")
 
 			plines = pline[0].split(':')
 			if len(plines) == 1:
@@ -478,8 +481,12 @@ else: #generic multi-column input
 
 	else:
 		correctlen = len(secondorder) + 1
+		lc = 0
 		for line in sys.stdin: #values
+			lc += 1
 			data = line.strip("\r\n").decode(inputencoding).split(tabulator)
+			if "noindex" in modifiers:
+				data.insert(0,lc)
 
 			if len(data) == 0 or line.strip() == '':
 				continue
@@ -500,9 +507,12 @@ else: #generic multi-column input
 				try:
 					sizes[i].append(float(d))
 				except ValueError:
-					sizes[i].append(None if "plot" in plottype else 0)
-					if d != '-' and d != '':
-						printe("Warning: Not a numeric value: '%s'. Use '-' to skip a value." % d)
+					try:
+						sizes[i].append(float(d.replace(',','.')))
+					except ValueError:
+						sizes[i].append(None if "plot" in plottype else 0)
+						if d != '-' and d != '':
+							printe("Warning: Not a numeric value: '%s'. Use '-' to skip a value." % d)
 
 ################  OUTPUT
 
@@ -579,7 +589,13 @@ elif "bar" in plottype or "plot" in plottype:
 			labels = map(dateutil.parser.parse,labels)
 		except:
 			pass
-			
+
+		if "unixtime" in modifiers:
+			try:
+				labels = map(datetime.datetime.fromtimestamp,labels)
+			except:
+				pass
+
 	if "log" in modifiers: # log auto-scale depends on data - https://github.com/matplotlib/matplotlib/issues/7413
 		ax1.set_yscale('log')
 
@@ -705,7 +721,7 @@ elif "bar" in plottype or "plot" in plottype:
 		maxi = recursive(max,sizes)
 		mini = recursive(min,sizes)
 
-		if "log" not in modifiers:
+		if "log" not in modifiers and maxi != mini:
 			ax1.set_ylim(bottom=mini - (maxi-mini)*0.02, top=maxi + (maxi-mini)*0.02)
 
 	if not autolb_success and max(map(len,map(unicode,labels)))*N>=100:

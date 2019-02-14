@@ -32,18 +32,19 @@ for i in $(seq -f "%02g" 1 15); do
 	case $i in
 		01) s="pie header" ;;
 		02) s="pie labels dark" ;;
-		03) s="sidebar overlay" ;;
-		04) s="bar dontload fit" ;;
+		03) s="sidebar commas overlay" ;;
+		04) s="bar dontload noindex fit" ;;
 		05) s="barcount noheader labels" ;;
 		06) s="topbar labels transparent" ;;
-		07) s="topbar squarefit crystal underspace" ;;
+		07) s="topbar semicolons squarefit crystal underspace" ;;
 		08) s="summarybar dontload underspace" ;;
 		09) s="plot tabs grid dark" ;;
-		10) s="plotstaggered tabs dark transparent" ;;
-		11) s="plotscatter tabs grid cubefit dark dontload" ;;
+		10) s="plotstaggered tabs dark transparent ignoreextra" ;;
+		11) s="plotscatter tabs grid cubefit dark dontload ignoreextra" ;;
 		12) s="plotscatter grid noheader linearfit dontload" ;;
-		13) s="plotscatter log grid crystal" ;;
+		13) s="plotscatter log light grid crystal" ;;
 		14) s="plotscatter log dark grid crystal" ;;
+		15) s="plot semicolons unixtime" ;;
 		*) continue
 	esac
 	r=$(( $r + 1 ))

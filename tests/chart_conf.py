@@ -11,10 +11,10 @@ intellicolors.update ({
 	'userfiles': '#00bb30',
 	'systemfiles': '#1010cd',
 	'malware': '#ee1020',
-	'medus': '#a98307',
+	u'lipīgais medus': '#a98307',
 	'ledus': '#a5f2f3',
-	'zemenes': '#fc5a8d',
-	u'ķirši': '#790604',
+	u'skābās zemenes': '#fc5a8d',
+	u'saldie ķirši': '#790604',
 })
 
 font_preference = ['Verdana', 'Sans']
