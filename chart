@@ -465,7 +465,7 @@ else: #generic multi-column input
 			if data[2] not in scats:
 				scats[data[2]] = []
 
-			scats[data[2]].append([float(data[0]),float(data[1])])
+			scats[data[2]].append([data[0],float(data[1])])
 
 		for a in scats:
 			secondorder.append(a)
