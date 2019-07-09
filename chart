@@ -194,8 +194,14 @@ def multdelta(td,co):
 if len(sys.argv) < 2:
 	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
 	printe()
-	printe("plot types: pie, [top,side][summary,count]bar, [scatter,stagger]plot")
-	printe("modifiers: dontload, light, dark, transparent, show, log, header, noheader, noindex, grid, overlay, crystal, labels, tabs, commas, semicolons, [linear,square,cube]fit, ignoreextra, underspace, unixtime")
+	printe("plot types:")
+	printe("	pie, [top,side][summary,count]bar, [scatter,stagger]plot")
+	printe()
+	printe("modifiers:")
+	printe("	input)   tabs, commas, semicolons, header, noheader, noindex")
+	printe("	design)  light, dark, transparent, grid, overlay, crystal, labels")
+	printe("	usage)   dontload, show, ignoreextra")
+	printe("	others)  log, [linear,square,cube]fit, underspace, unixtime")
 	printe()
 	exit(3)
 
