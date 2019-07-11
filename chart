@@ -200,7 +200,7 @@ if len(sys.argv) < 2:
 	printe("modifiers:")
 	printe("	input)   tabs, commas, semicolons, header, noheader, noindex")
 	printe("	design)  light, dark, transparent, grid, overlay, crystal, labels")
-	printe("	usage)   dontload, show, ignoreextra")
+	printe("	setup)   dontload, show, ignoreextra")
 	printe("	others)  log, [linear,square,cube]fit, underspace, unixtime")
 	printe()
 	exit(3)
@@ -767,5 +767,11 @@ if "dontload" not in modifiers:
 
 plt.savefig(outfilename, bbox_inches='tight', transparent = "transparent" in modifiers)
 
-if ("show" in modifiers or "test" in modifiers) and opener and opener.lower() != "none":
-	os.system("%s %s"%(opener,outfilename))
+if "show" in modifiers and not "test" in modifiers:
+	if opener and opener.lower() != "none":
+		os.system("%s %s"%(opener,outfilename))
+	else:
+		plt.show()
+
+if "test" in modifiers:
+	plt.show()
