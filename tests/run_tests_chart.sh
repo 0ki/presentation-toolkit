@@ -27,7 +27,7 @@ SETS=$*
 errors=""
 diffs=""
 r=0
-for i in $(seq -f "%02g" 1 16); do
+for i in $(seq -f "%02g" 1 17); do
 	[ $tests -eq 0 -o $tests -eq $i ] || continue
 	case $i in
 		01) s="pie header" ;;
@@ -46,6 +46,7 @@ for i in $(seq -f "%02g" 1 16); do
 		14) s="plotscatter log dark grid crystal" ;;
 		15) s="plot semicolons unixtime" ;;
 		16) s="plotscatter underspace" ;;
+		17) s="plot commas unixtime" ;;
 		*) continue
 	esac
 	r=$(( $r + 1 ))
@@ -75,5 +76,5 @@ if [ $eres -gt 0 ]; then
 fi
 
 if [ $dres -gt 0 ]; then
-	echo Te following tests now produce different results: $diffs
+	echo The following tests now produce different results: $diffs
 fi

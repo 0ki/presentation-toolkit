@@ -205,7 +205,6 @@ if len(sys.argv) < 2:
 	printe()
 	exit(3)
 
-
 argv_s = sys.argv[:]
 sys.argv.pop(0)
 plottype = sys.argv.pop(0)
@@ -720,6 +719,9 @@ elif "bar" in plottype or "plot" in plottype:
 			maxi = recursive(max,labels)
 			mini = recursive(min,labels)
 			padding = multdelta((maxi-mini),0.02)
+			minpadding = datetime.timedelta(1.0/24/60/2) #minimum padding = 30 seconds
+			if padding < minpadding:
+				padding = minpadding
 			ax1.set_xlim(left=min(labels) - padding, right=max(labels) + padding)
 			autolb_success = True
 		except:
