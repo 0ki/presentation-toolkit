@@ -205,6 +205,7 @@ if len(sys.argv) < 2:
 	printe()
 	exit(3)
 
+
 argv_s = sys.argv[:]
 sys.argv.pop(0)
 plottype = sys.argv.pop(0)
@@ -375,13 +376,14 @@ if "summary" in plottype:
 		if len(labels) > limit_horizontal-2 and data[1] not in labels:
 			if data[2] not in otherd:
 				otherd[data[2]] = 0.0
-
 			otherd[data[2]] += float(data[0])
 		else:
 			if data[1] not in labels:
 				labels.append(data[1])
 				sizesd[data[1]] = {}
-			sizesd[data[1]][data[2]] = float(data[0])
+			if data[2] not in sizesd[data[1]]:
+				sizesd[data[1]][data[2]] = 0
+			sizesd[data[1]][data[2]] += float(data[0])
 
 	if len(otherd) > 0 :
 		labels.append(otherlabel)
