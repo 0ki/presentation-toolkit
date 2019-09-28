@@ -45,7 +45,7 @@ for i in $(seq -f "%02g" 1 17); do
 		13) s="plotscatter log light grid crystal" ;;
 		14) s="plotscatter log dark grid crystal" ;;
 		15) s="plot semicolons unixtime" ;;
-		16) s="plotscatter underspace" ;;
+		16) s="plotscatter dontload underspace" ;;
 		17) s="plot commas unixtime" ;;
 		*) continue
 	esac

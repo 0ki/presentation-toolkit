@@ -64,5 +64,5 @@ alpha = 0.6
 
 plt.rcParams['hatch.linewidth']=0.2
 
-
+dateformat = '%H:%M:%S'
 
