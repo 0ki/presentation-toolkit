@@ -646,14 +646,25 @@ elif "bar" in plottype or "plot" in plottype:
 				bottom = [x + y for x, y in zip(bottom, data)]
 			else:
 				realwidth = width/len(sizes)
-				items.append(
-					ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data,
-					width - (len(sizes) -1)*overlay*realwidth if overlay else realwidth,
-					**remap(barstyle,
-					color=col,
-					align='center',
-					edgecolor=edgecolor,
-					alpha=None if col=='none' else alpha )))
+				if 'none' in col and alpha is not None and type(col) is list:
+					for cic in range(0,len(data)):
+						items.append(
+							ax1.bar(ind[cic]+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5), data[cic],
+							width - (len(sizes) -1)*overlay*realwidth if overlay else realwidth,
+							**remap(barstyle,
+							color=col[cic],
+							align='center',
+							edgecolor=edgecolor,
+							alpha=None if col[cic]=='none' else alpha )))
+				else:
+					items.append(
+						ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data,
+						width - (len(sizes) -1)*overlay*realwidth if overlay else realwidth,
+						**remap(barstyle,
+						color=col,
+						align='center',
+						edgecolor=edgecolor,
+						alpha=None if col=='none' else alpha )))
 
 			if topbar:
 				labelsz = ind

@@ -27,14 +27,14 @@ SETS=$*
 errors=""
 diffs=""
 r=0
-for i in $(seq -f "%02g" 1 17); do
+for i in $(seq -f "%02g" 1 18); do
 	[ $tests -eq 0 -o $tests -eq $i ] || continue
 	case $i in
 		01) s="pie header dark" ;;
 		02) s="pie labels crystal" ;;
 		03) s="sidebar commas overlay" ;;
 		04) s="bar dontload noindex fit" ;;
-		05) s="barcount noheader labels" ;;
+		05) s="countbar noheader labels crystal" ;;
 		06) s="topbar dontload labels" ;;
 		07) s="topbar semicolons squarefit transparent crystal underspace" ;;
 		08) s="summarybar dontload underspace crystal" ;;
@@ -47,6 +47,7 @@ for i in $(seq -f "%02g" 1 17); do
 		15) s="plot semicolons unixtime" ;;
 		16) s="plotscatter dontload underspace" ;;
 		17) s="plot commas unixtime" ;;
+		18) s="topbar crystal" ;;
 		*) continue
 	esac
 	r=$(( $r + 1 ))

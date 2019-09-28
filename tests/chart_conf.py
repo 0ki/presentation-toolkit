@@ -15,6 +15,7 @@ intellicolors.update ({
 	'ledus': '#a5f2f3',
 	u'skābās zemenes': '#fc5a8d',
 	u'saldie ķirši': '#790604',
+	'ghost': 'none',
 })
 
 font_preference = ['Verdana', 'Sans']
