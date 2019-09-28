@@ -107,6 +107,7 @@ edgecolors_ = [
 limit_horizontal = 10
 limit_vertical   = len(colors_)
 
+dateformat = None
 
 
 #######################################################################
@@ -325,6 +326,7 @@ random.seed(colorseed) # fixed colorgen
 
 labellegend = None
 labely,labelx = None,None
+datelabels = False
 labels = []
 secondorder = []
 sizes = []
@@ -595,12 +597,14 @@ elif "bar" in plottype or "plot" in plottype:
 
 		try:
 			labels = map(dateutil.parser.parse,labels)
+			datelabels = True
 		except:
 			pass
 
 		if "unixtime" in modifiers:
 			try:
 				labels = map(datetime.datetime.fromtimestamp,labels)
+				datelabels = True
 			except:
 				pass
 
@@ -681,6 +685,7 @@ elif "bar" in plottype or "plot" in plottype:
 				numerictrend = True
 			elif type(labelsz[0]) is datetime.datetime:
 				labelszl = map(mpld.date2num,labelsz)
+
 				numerictrend = True
 
 			labelszs, datazs = zip(*sorted(zip(labelszl, dataz)))
@@ -698,6 +703,9 @@ elif "bar" in plottype or "plot" in plottype:
 
 
 	ax1.set_axisbelow(True)
+
+	if datelabels and dateformat:
+		ax1.xaxis.set_major_formatter(mpld.DateFormatter(dateformat))
 
 	if labely is not None:
 		ax1.set_ylabel(labely)
