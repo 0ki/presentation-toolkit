@@ -39,11 +39,11 @@ for i in $(seq -f "%02g" 1 17); do
 		07) s="topbar semicolons squarefit transparent crystal underspace" ;;
 		08) s="summarybar dontload underspace crystal" ;;
 		09) s="plot tabs grid dark" ;;
-		10) s="plotstaggered tabs dark transparent ignoreextra" ;;
+		10) s="plotstaggered tabs dark transparent ignoreextra autolimits" ;;
 		11) s="plotscatter tabs grid cubefit dark dontload ignoreextra" ;;
 		12) s="plotscatter grid noheader linearfit dontload" ;;
-		13) s="plotscatter log light grid crystal" ;;
-		14) s="plotscatter log dark grid crystal" ;;
+		13) s="plotscatter log light grid crystal autolimits" ;;
+		14) s="plotscatter log dark grid crystal autolimits" ;;
 		15) s="plot semicolons unixtime" ;;
 		16) s="plotscatter dontload underspace" ;;
 		17) s="plot commas unixtime" ;;

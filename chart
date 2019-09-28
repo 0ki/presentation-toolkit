@@ -18,7 +18,7 @@ alpha           = 0.8
 decimals        = 1    #for piechart percentage
 width           = 0.8  # proportion of horizontal estate covered by bars
 overlay         = 0.75 # overlay of sidebars
-plotmarkerlimit = 100  # do not add more that this markers to plot
+plotmarkerlimit = 100  # do not add more than this many markers to plot
 colorseed       = 8888 #any integer really. this defines additional colors
 
 font_preference = ['FreeSans', 'Calibri', 'Source Sans Pro', 'DejaVu Sans', 'Fauna One', 'Sans']
@@ -109,6 +109,10 @@ limit_vertical   = len(colors_)
 
 dateformat = None
 
+plotlimit_left   = None
+plotlimit_right  = None
+plotlimit_top    = None
+plotlimit_bottom = None
 
 #######################################################################
 import matplotlib.pyplot as plt
@@ -201,7 +205,7 @@ if len(sys.argv) < 2:
 	printe("modifiers:")
 	printe("	input)   tabs, commas, semicolons, header, noheader, noindex")
 	printe("	design)  light, dark, transparent, grid, overlay, crystal, labels")
-	printe("	setup)   dontload, show, ignoreextra")
+	printe("	setup)   dontload, autolimits, show, ignoreextra")
 	printe("	others)  log, [linear,square,cube]fit, underspace, unixtime")
 	printe()
 	exit(3)
@@ -274,6 +278,12 @@ else:
 
 if "overlay" not in modifiers:
 	overlay = 0.0
+
+if "autolimits" in modifiers:
+	plotlimit_left = None
+	plotlimit_right = None
+	plotlimit_top = None
+	plotlimit_bottom = None
 
 colors_ = map (lambda x: x if isinstance(x,list) else [x,x], colors_)
 
@@ -721,7 +731,12 @@ elif "bar" in plottype or "plot" in plottype:
 	else:
 		try:
 			ax1.set_xlim(left=min(labels)-0.5, right=max(labels)+0.5)
-			autolb_success = True
+			autolb_success = plotlimit_left is None and plotlimit_right is None
+			if plotlimit_left is not None:
+				ax1.set_xlim(left=plotlimit_left)
+			if plotlimit_right is not None:
+				ax1.set_xlim(right=plotlimit_right)
+
 		except:
 			pass
 
@@ -747,6 +762,11 @@ elif "bar" in plottype or "plot" in plottype:
 		plt.xticks(rotation=33)
 
 	ax1.xaxis.set_label_coords(1.05, 0.02)
+
+	if plotlimit_bottom is not None and ("log" not in modifiers or plotlimit_bottom>0):
+		ax1.set_ylim(bottom=plotlimit_bottom)
+	if plotlimit_top is not None and ("log" not in modifiers or plotlimit_top>0):
+		ax1.set_ylim(top=plotlimit_top)
 
 	if "grid" in modifiers:
 		ax1.grid(**remap(gridstyle,
