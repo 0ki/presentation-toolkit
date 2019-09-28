@@ -13,7 +13,7 @@ function run(){
 	id="$1"
 	shift 2
 	#echo "  --- Running 'cat in/$in | chart $type out/$out $* $SETS'"
-	echo -n "  --- ($id) $type : $in -> $out lines:$(wc -l in/$in | cut -d \  -f 1) sec:"
+	echo -n "  --- ($id) $type : $in -> $out, lines:$(wc -l in/$in | cut -d \  -f 1), sec:"
 	cat in/$in | /usr/bin/time -f %e chart $type out/$out $* $SETS
 }
 
@@ -30,14 +30,14 @@ r=0
 for i in $(seq -f "%02g" 1 17); do
 	[ $tests -eq 0 -o $tests -eq $i ] || continue
 	case $i in
-		01) s="pie header" ;;
-		02) s="pie labels dark" ;;
+		01) s="pie header dark" ;;
+		02) s="pie labels crystal" ;;
 		03) s="sidebar commas overlay" ;;
 		04) s="bar dontload noindex fit" ;;
 		05) s="barcount noheader labels" ;;
 		06) s="topbar dontload labels" ;;
 		07) s="topbar semicolons squarefit transparent crystal underspace" ;;
-		08) s="summarybar dontload underspace" ;;
+		08) s="summarybar dontload underspace crystal" ;;
 		09) s="plot tabs grid dark" ;;
 		10) s="plotstaggered tabs dark transparent ignoreextra" ;;
 		11) s="plotscatter tabs grid cubefit dark dontload ignoreextra" ;;

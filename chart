@@ -627,7 +627,7 @@ elif "bar" in plottype or "plot" in plottype:
 					align='center',
 					bottom=bottom,
 					edgecolor=edgecolor,
-					alpha=alpha )))
+					alpha=None if col=='none' else alpha )))
 
 				bottom = [x + y for x, y in zip(bottom, data)]
 			else:
@@ -639,7 +639,7 @@ elif "bar" in plottype or "plot" in plottype:
 					color=col,
 					align='center',
 					edgecolor=edgecolor,
-					alpha=alpha )))
+					alpha=None if col=='none' else alpha )))
 
 			if topbar:
 				labelsz = ind
@@ -660,13 +660,13 @@ elif "bar" in plottype or "plot" in plottype:
 				items.append(ax1.scatter(labels, data,
 					**remap(scatterstyle,
 					color=col,
-					alpha=alpha )))
+					alpha=None if col=='none' else alpha )))
 
 			else:
 				items.append(ax1.plot(labels, data,
 				**remap(remap(plotstyle,
 				color=col,
-				alpha=alpha,
+				alpha=None if col=='none' else alpha,
 				drawstyle='steps-post' if 'stagger' in plottype else 'default',
 				markeredgecolor=edgecolor),
 				__direction=2,
@@ -694,7 +694,7 @@ elif "bar" in plottype or "plot" in plottype:
 			ax1.plot(labelsz,pf(labelszs),
 			**remap(fitstyle,
 			color=col[0] if type(col) is list else col,
-			alpha=alpha))
+			alpha=None if col=='none' else alpha))
 
 
 	ax1.set_axisbelow(True)
