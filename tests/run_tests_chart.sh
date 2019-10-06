@@ -27,7 +27,7 @@ SETS=$*
 errors=""
 diffs=""
 r=0
-for i in $(seq -f "%02g" 1 18); do
+for i in $(seq -f "%02g" 1 19); do
 	[ $tests -eq 0 -o $tests -eq $i ] || continue
 	case $i in
 		01) s="pie header dark" ;;
@@ -48,6 +48,7 @@ for i in $(seq -f "%02g" 1 18); do
 		16) s="plotscatter dontload underspace" ;;
 		17) s="plot commas unixtime" ;;
 		18) s="topbar crystal" ;;
+		19) s="bar grid log crystal tildenewline" ;;
 		*) continue
 	esac
 	r=$(( $r + 1 ))
