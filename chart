@@ -140,10 +140,15 @@ def recursive(fun,value):
 def empty(l):
     return all([empty(i) for i in l]) if isinstance(l, list) else l is None
 
-def underspace(st):
+def labelmodifier(st):
 	if not isinstance(st,basestring):
 		return st
-	return st.replace("_"," ") if "underspace" in modifiers else st
+	if "tildenewline" in modifiers: #TODO add tests for this
+		st=st.replace("~","\n")
+	if "underspace" in modifiers:
+		st=st.replace("_"," ")
+
+	return st
 
 def printe(st=""):
 	sys.stderr.write("%s\n"%st)
@@ -206,7 +211,7 @@ if len(sys.argv) < 2:
 	printe("	input)   tabs, commas, semicolons, header, noheader, noindex")
 	printe("	design)  light, dark, transparent, grid, overlay, crystal, labels")
 	printe("	setup)   dontload, autolimits, show, ignoreextra")
-	printe("	others)  log, [linear,square,cube]fit, underspace, unixtime")
+	printe("	others)  log, [linear,square,cube]fit, underspace, tildenewline, unixtime")
 	printe()
 	exit(3)
 
@@ -553,11 +558,11 @@ if "plot" in plottype:
 else:
 	colors.append(finalcolor)
 
-labels = map(underspace, labels)
-secondorder = map(underspace, secondorder)
-labelx = underspace(labelx)
-labely = underspace(labely)
-labellegend = underspace(labellegend)
+labels = map(labelmodifier, labels)
+secondorder = map(labelmodifier, secondorder)
+labelx = labelmodifier(labelx)
+labely = labelmodifier(labely)
+labellegend = labelmodifier(labellegend)
 
 if plottype == "pie":
 
@@ -619,7 +624,11 @@ elif "bar" in plottype or "plot" in plottype:
 				pass
 
 	if "log" in modifiers: # log auto-scale depends on data - https://github.com/matplotlib/matplotlib/issues/7413
-		ax1.set_yscale('log')
+		if any(all(a<=0 for a in x) for x in sizes):
+			modifiers.remove("log")
+			printe("Warning: A column has no positive elements. Cancelling 'log' modifier.")
+		else:
+			ax1.set_yscale('log')
 
 
 	for i,data in enumerate(sizes):
@@ -774,10 +783,17 @@ elif "bar" in plottype or "plot" in plottype:
 
 	ax1.xaxis.set_label_coords(1.05, 0.02)
 
-	if plotlimit_bottom is not None and ("log" not in modifiers or plotlimit_bottom>0):
-		ax1.set_ylim(bottom=plotlimit_bottom)
-	if plotlimit_top is not None and ("log" not in modifiers or plotlimit_top>0):
-		ax1.set_ylim(top=plotlimit_top)
+	if plotlimit_bottom is not None:
+		if ("log" not in modifiers or plotlimit_bottom>0):
+			ax1.set_ylim(bottom=plotlimit_bottom)
+		else:
+			 printe("Warning: Ignoring non-positive plotlimit_bottom for log axis.")
+
+	if plotlimit_top is not None:
+		if ("log" not in modifiers or plotlimit_top>0):
+			ax1.set_ylim(top=plotlimit_top)
+		else:
+			printe("Warning: Ignoring non-positive plotlimit_top for log axis.")
 
 	if "grid" in modifiers:
 		ax1.grid(**remap(gridstyle,
