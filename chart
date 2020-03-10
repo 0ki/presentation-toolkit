@@ -186,9 +186,9 @@ def remap(d, **kwargs):
 def autolabel(rects):
 	for rect in rects:
 		height = rect.get_height()
-		if height <= 0:
+		if height == 0:
 			continue
-		ax1.text(rect.get_x() + rect.get_width()/2., rect.get_y() + height/2 - height*0.05,
+		ax1.text(rect.get_x() + rect.get_width()/2., rect.get_y() + height/2 - height*0.05*(1 if height>0 else -1),
                 '%d' % int(height), **remap(labelstyle,
 				color=plt.rcParams['figure.facecolor'])).set_path_effects([PathEffects.withStroke(
 					**remap(labeleffects,
