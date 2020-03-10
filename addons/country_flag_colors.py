@@ -111,7 +111,7 @@ intellicolors.update ({
 'Lesotho': '#5E94A1',
 'Lithuania': '#956E2C',
 'Luxembourg': '#A498B2',
-'Latvia': '#b15961',
+'Latvia': '#B15961',
 'Libya': '#452A19',
 'Morocco': '#BE282D',
 'Monaco': '#E78993', # '#E68892', # made just a tad darker to differntiate from Poland 
