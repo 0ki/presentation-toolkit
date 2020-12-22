@@ -121,7 +121,7 @@ import matplotlib.font_manager as fnt
 import matplotlib.patheffects as PathEffects
 import matplotlib.dates as mpld
 import numpy as np
-import sys,os,warnings,random,dateutil,datetime
+import sys,os,warnings,random,dateutil,datetime,re
 from uuid import uuid4
 from collections import OrderedDict
 
@@ -199,7 +199,16 @@ def autolabel(rects):
 def multdelta(td,co):
 	return datetime.timedelta(td.total_seconds() * co/24/60/60)
 
+def intellicolor(label, fallback = None):
+	if label in intellicolors:
+		return intellicolors[label]
+	elif regexcolors:
+		for regex in intellicolors:
+			if regex[0]=='/' and regex[-1]=='/':
+				if re.findall(regex[1:-1],label, re.S | re.U): #match wiil fail for some reason
+					return intellicolors[regex]
 
+	return fallback
 
 ######## PARSE ARGS
 if len(sys.argv) < 2:
@@ -292,10 +301,12 @@ if "autolimits" in modifiers:
 	plotlimit_bottom = None
 
 colors_ = map (lambda x: x if isinstance(x,list) else [x,x], colors_)
+regexcolors = False
 
 if "dark" in modifiers:
 	colors = map(lambda x: x[1], colors_)
 	for i in intellicolors:
+		regexcolors |= i[0] == '/' and i[-1] == '/'
 		if isinstance(intellicolors[i],list):
 			intellicolors[i]=intellicolors[i][1]
 	edgecolor = edgecolors_[1]
@@ -303,6 +314,7 @@ if "dark" in modifiers:
 else:
 	colors = map(lambda x: x[0], colors_)
 	for i in intellicolors:
+		regexcolors |= i[0] == '/' and i[-1] == '/'
 		if isinstance(intellicolors[i],list):
 			intellicolors[i]=intellicolors[i][0]
 	edgecolor = edgecolors_[0]
@@ -584,7 +596,7 @@ if plottype == "pie":
 
 	for i,pie_wedge in enumerate(pie_wedge_collection[0]):
 		pie_wedge.set_edgecolor(edgecolor)
-		col = intellicolors[labels[i]] if labels[i] in intellicolors else colors[i]
+		col = intellicolor(labels[i], colors[i])
 		pie_wedge.set_facecolor(col)
 		pie_wedge.set_alpha(alpha)
 
@@ -639,13 +651,13 @@ elif "bar" in plottype or "plot" in plottype:
 	for i,data in enumerate(sizes):
 
 		if "bar" in plottype and len(secondorder)<=1:
-			col = [ intellicolors[j] if j in intellicolors  else colors[i] for j in labels]
+			col = [ intellicolor(j,colors[i]) for j in labels]
 		else:
 			col = colors[i]
 
 		if len(secondorder)>i:
 			if secondorder[i] in intellicolors:
-				col = intellicolors[secondorder[i]]
+				col = intellicolor(secondorder[i], col)
 
 		if "bar" in plottype:
 			if topbar:
