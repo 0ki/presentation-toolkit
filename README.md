@@ -29,6 +29,8 @@ dd if=/dev/urandom count=1000 | tr -dc 0-9 | sed -E 's/(..).(...).(...)./\1 \2 \
 dominantcolor /tmp/test.png 3
 image-invert /tmp/test.png 
 termshot /tmp/test2.png hexcolordump -as /tmp/test.png 
+
+wget https://upload.wikimedia.org/wikipedia/commons/f/f0/Aurora_Australis.ogv && video2gif Aurora_Australis.ogv
 ```
 
 Take a look at [nice output images](./tests/out/) and [respective input samples](./tests/in/) to continue your quick-start tour. Those are used for regression testing, but are super useful to learn to use the tools (not that they need any learning).
