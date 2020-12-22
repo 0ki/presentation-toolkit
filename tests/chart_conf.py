@@ -16,6 +16,7 @@ intellicolors.update ({
 	u'skābās zemenes': '#fc5a8d',
 	u'saldie ķirši': '#790604',
     '/pils.municipality$/': [ '#303080' , '#c0c0f0' ], #regular expression support
+    '/^liqui.$/': 'white',
     u'/^Rīg/': 'gold',
     'Ventspils\nmunicipality': 'red',
 	'ghost': 'none',

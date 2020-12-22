@@ -656,8 +656,7 @@ elif "bar" in plottype or "plot" in plottype:
 			col = colors[i]
 
 		if len(secondorder)>i:
-			if secondorder[i] in intellicolors:
-				col = intellicolor(secondorder[i], col)
+			col = intellicolor(secondorder[i], col)
 
 		if "bar" in plottype:
 			if topbar:
