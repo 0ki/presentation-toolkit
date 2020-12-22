@@ -27,7 +27,7 @@ SETS=$*
 errors=""
 diffs=""
 r=0
-for i in $(seq -f "%02g" 1 19); do
+for i in $(seq -f "%02g" 1 20); do
 	[ $tests -eq 0 -o $tests -eq $i ] || continue
 	case $i in
 		01) s="pie header dark" ;;
@@ -44,11 +44,12 @@ for i in $(seq -f "%02g" 1 19); do
 		12) s="plotscatter grid noheader linearfit dontload" ;;
 		13) s="plotscatter log light grid crystal autolimits" ;;
 		14) s="plotscatter log dark grid crystal autolimits" ;;
-		15) s="plot semicolons unixtime" ;;
+		15) s="plot dontload semicolons unixtime" ;;
 		16) s="plotscatter dontload underspace" ;;
 		17) s="plot commas unixtime" ;;
 		18) s="topbar crystal" ;;
 		19) s="bar grid log crystal tildenewline" ;;
+		20) s="plotscatter underspace" ;;
 		*) continue
 	esac
 	r=$(( $r + 1 ))

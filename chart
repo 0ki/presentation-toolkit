@@ -108,6 +108,7 @@ limit_horizontal = 10
 limit_vertical   = len(colors_)
 
 dateformat = None
+timeoffset = 0
 
 plotlimit_left   = None
 plotlimit_right  = None
@@ -621,7 +622,11 @@ elif "bar" in plottype or "plot" in plottype:
 				labels = map(datetime.datetime.fromtimestamp,labels)
 				datelabels = True
 			except:
-				pass
+
+   				pass
+
+	if datelabels:
+		labels = map(lambda x: x+datetime.timedelta(seconds=timeoffset*3600),labels)
 
 	if "log" in modifiers: # log auto-scale depends on data - https://github.com/matplotlib/matplotlib/issues/7413
 		if any(all(a<=0 for a in x) for x in sizes):

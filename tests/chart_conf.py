@@ -67,5 +67,7 @@ plt.rcParams['hatch.linewidth']=0.2
 
 dateformat = '%H:%M:%S'
 
+timeoffset = +2 #hours
+
 plotlimit_left = 2000
 
