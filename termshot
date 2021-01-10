@@ -23,9 +23,9 @@ shift
 
 if [ $sc -gt 0 ]; then
 	[ "$EUID" == "0" ] && q="\#" || q="\$"
-	echo "clear; echo $q '$*'; $*; touch $PIDFILE; sleep 1; exit" | script -q & #preserve colors
+	echo "clear; echo $q \"${@@Q}\"; "${@@Q}"; touch $PIDFILE; sleep 1; exit" | script -q & #preserve colors
 else
-	echo "clear; $*; touch $PIDFILE; sleep 1; exit" | script -q & #preserve colors
+	echo "clear; "${@@Q}"; touch $PIDFILE; sleep 1; exit" | script -q & #preserve colors
 fi
 
 while [ ! -f $PIDFILE ]; do
@@ -33,6 +33,6 @@ while [ ! -f $PIDFILE ]; do
 done
 rm $PIDFILE
 sleep 0.5
-import -silent -window $WINDOWID -gravity East -crop +14+30 $file
+import -silent -window "$WINDOWID" -gravity East -crop +14+30 "$file"
 sleep 1
 echo Saved screenshot in $file

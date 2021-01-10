@@ -205,7 +205,7 @@ def intellicolor(label, fallback = None):
 	elif regexcolors:
 		for regex in intellicolors:
 			if regex[0]=='/' and regex[-1]=='/':
-				if re.findall(regex[1:-1],label, re.S | re.U): #match wiil fail for some reason
+				if re.findall(regex[1:-1],label, re.S | re.U): #match will fail for some reason
 					return intellicolors[regex]
 
 	return fallback
