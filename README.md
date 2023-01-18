@@ -66,6 +66,7 @@ Thanks to @leyrer & @MacLemon
 ```
 $ cat in.txt 
 digraph {
+	rankdir="LR";
         a -> b;
         b -> c;
 }
