@@ -72,5 +72,5 @@ digraph {
 
 $ cat in.txt |dot -T svg > out-dot.svg
 ```
-![Output example (dot)](out-dot.svg) "Graph connecting a to b to c")
+![Output example (dot)](out-dot.svg "Graph connecting a to b to c")
 
