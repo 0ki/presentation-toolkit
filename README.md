@@ -60,3 +60,17 @@ https://twitter.com/jesslynnrose/status/1041242744998572032
 1. terminal 2: `screen -x presenting`
 1. move one of the terminals to the other screen
 Thanks to @leyrer & @MacLemon
+
+* Drawing graphs
+
+```
+$ cat in.txt 
+digraph {
+        a -> b;
+        b -> c;
+}
+
+$ cat in.txt |dot -T svg > out-dot.svg
+```
+![Output example (dot)](out-dot.svg) "Graph connecting a to b to c")
+
