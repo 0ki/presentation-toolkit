@@ -1,0 +1,854 @@
+#!/usr/bin/python3
+
+'''
+TODO:
+	- modifier to swap around labels (first or last)
+	- add "label" modifier support for other plottypes
+	- refactor code into function blocks
+'''
+
+conffile        = "chart_conf.py"
+postprocfile    = "chart_post.py"
+opener          = "xdg-open"
+tmpdir          = "/tmp/"
+#inputencoding   = "utf-8"
+otherlabel      = "(other)"
+unnamedlabel	= "<row #%i>"
+alpha           = 0.8
+decimals        = 1    #for piechart percentage
+width           = 0.8  # proportion of horizontal estate covered by bars
+overlay         = 0.75 # overlay of sidebars
+plotmarkerlimit = 100  # do not add more than this many markers to plot
+colorseed       = 8888 #any integer really. this defines additional colors
+
+font_preference = ['FreeSans', 'Calibri', 'Source Sans Pro', 'DejaVu Sans', 'Fauna One', 'Sans']
+
+font = {
+ 'weight' : 'normal',
+ 'size'   : 20
+}
+  
+
+legendstyle = {
+	'bbox_to_anchor' : (1.0,1.025),
+	'loc'            : "upper left",
+	'fontsize'       : font['size'], #no auto-resize
+	'frameon'        : False
+}
+
+labelstyle = {
+	'ha': 'center',
+	'va': 'center',
+	'fontweight': 'bold'
+}
+
+labeleffects = {
+	'linewidth': 2
+}
+
+wedgestyle = {
+ 'shadow': False,
+ 'startangle': 180,
+ 'counterclock': False
+}
+
+barstyle = {
+}
+
+scatterstyle = {
+	'linewidth': 1,
+	's': 80.0,
+	'marker': 'X'
+}
+
+plotstyle = {
+	'linewidth': 3,
+	'linestyle': '-',
+	'marker': 'o',
+	'markersize': 10
+}
+
+fitstyle = {
+	'linewidth': 1,
+	'linestyle': '--'
+}
+
+gridstyle = {
+	'linestyle': ':'
+}
+
+gridstyleminor = {
+	'linestyle': ':',
+	'alpha': 0.5
+}
+
+colors_ = [                # Stephen Few, Show Me the Numbers
+    ['#4D4D4D','#B2B2B2'], # (gray)
+    ['#F15854','#F15854'], # (red)
+    ['#DECF3F','#EEDF4F'], # (yellow)
+    ['#B276B2','#A266A2'], # (purple)
+    ['#60BD68','#50AD58'], # (green)
+    ['#FAA43A','#FAA43A'], # (orange)
+    ['#5DA5DA','#5DA5DA'], # (blue)
+	['#B2912F','#C2953A'], # (brown)
+    ['#F17CB0','#F17CB0'], # (pink)
+    
+    ['none' , 'none'],
+]
+
+intellicolors = {
+	otherlabel: 'none'
+}
+
+edgecolors_ = [
+	'#cccccc','#333333'
+]
+
+limit_horizontal = 10
+limit_vertical   = len(colors_)
+
+dateformat = None
+timeoffset = 0
+
+plotlimit_left   = None
+plotlimit_right  = None
+plotlimit_top    = None
+plotlimit_bottom = None
+
+#######################################################################
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fnt
+import matplotlib.patheffects as PathEffects
+import matplotlib.dates as mpld
+import numpy as np
+import sys,os,warnings,random,dateutil,datetime,re
+from uuid import uuid4
+from collections import OrderedDict
+
+def recursive(fun,value):
+	resolve = []
+	for v in value:
+		if type(v) is list:
+			resolve.append(recursive(fun,v))
+		else:
+			resolve.append(v)
+	try:
+		ret = fun([x for x in resolve if x is not None])
+	except:
+		ret = None
+	return ret
+
+def empty(l):
+    return all([empty(i) for i in l]) if isinstance(l, list) else l is None
+
+def labelmodifier(st):
+	if not isinstance(st,str):
+		return st
+	if "tildenewline" in modifiers:
+		st=st.replace("~","\n")
+	if "underspace" in modifiers:
+		st=st.replace("_"," ")
+
+	return st
+
+def printe(st=""):
+	sys.stderr.write("%s\n"%st)
+
+def badline(l):
+	printe("Warning: Line '%s' does not match expected format."%l.strip("\n\r"))
+
+def badheader(l):
+	printe("Error: Header '%s' does not have the right number of fields."%l.strip("\n\r"))
+	exit(1)
+
+def goodlen(ar,l):
+	if len(ar) < l or (len(ar) > l and "ignoreextra" not in modifiers):
+		badline(line)
+		return False
+	while len(ar) > l:
+		ar.pop()
+	return True
+
+def remap(d, **kwargs):
+	# like update() but ... better? :D
+	r = dict(d)
+	if '__direction' in kwargs and kwargs['__direction'] > 1:
+		rev=1
+	else:
+		rev=0
+	for key in kwargs:
+		if key[0:2]=='__':
+			continue
+		if rev or key not in d:
+			r[key] = kwargs[key]
+	return r
+
+
+def autolabel(rects):
+	for rect in rects:
+		height = rect.get_height()
+		if height == 0:
+			continue
+		ax1.text(rect.get_x() + rect.get_width()/2., rect.get_y() + height/2 - height*0.05*(1 if height>0 else -1),
+                '%d' % int(height), **remap(labelstyle,
+				color=plt.rcParams['figure.facecolor'])).set_path_effects([PathEffects.withStroke(
+					**remap(labeleffects,
+						foreground=plt.rcParams['text.color']))])
+
+
+def multdelta(td,co):
+	return datetime.timedelta(td.total_seconds() * co/24/60/60)
+
+def intellicolor(label, fallback = None):
+	if label in intellicolors:
+		return intellicolors[label]
+	elif regexcolors:
+		for regex in intellicolors:
+			if regex[0]=='/' and regex[-1]=='/':
+				if re.findall(regex[1:-1],label, re.S | re.U): #match will fail for some reason
+					return intellicolors[regex]
+
+	return fallback
+
+######## PARSE ARGS
+if len(sys.argv) < 2:
+	printe("Usage: %s <plot type> [output.png] [modifiers...]"%sys.argv[0])
+	printe()
+	printe("plot types:")
+	printe("	pie, [top,side][summary,count]bar, [scatter,stagger]plot")
+	printe()
+	printe("modifiers:")
+	printe("	input)   tabs, commas, semicolons, header, noheader, noindex")
+	printe("	design)  light, dark, transparent, grid, overlay, crystal, labels")
+	printe("	setup)   dontload, autolimits, show, ignoreextra")
+	printe("	others)  log, [linear,square,cube]fit, underspace, tildenewline, unixtime")
+	printe()
+	exit(3)
+
+
+argv_s = sys.argv[:]
+sys.argv.pop(0)
+plottype = sys.argv.pop(0)
+
+if len(sys.argv)>0 and "." in sys.argv[0]:
+	outfilename = sys.argv.pop(0)
+else:
+	outfilename = None
+
+modifiers = [x.lower() for x in sys.argv]
+
+sys.argv = argv_s
+
+if outfilename is None:
+	modifiers.append("show")
+	outfilename = tmpdir + "/" + str(uuid4()) +".png"
+
+
+for p in [
+('header','noheader'),
+('light','dark'),
+('tabs','commas','semicolons'),
+('fit','linearfit','squarefit','cubefit'),
+]:
+	if sum([pn in modifiers for pn in p])>1:
+		printe("Conflicting modifiers. You can only have one of '%s'."%("', '".join(p)))
+		exit(4)
+
+for p in [
+('top','side'),
+('scatter','stagger'),
+('summary','count'),
+('pie','bar','plot'),
+]:
+	if sum([pn in plottype for pn in p])>1:
+		printe("Conflicting plottypes. You can only have one of '%s'."%("', '".join(p)))
+		exit(4)
+
+
+####### SETUP
+
+if "dontload" not in modifiers:
+	try:
+		exec(compile(open(conffile, "rb").read(), conffile, 'exec'))
+	except IOError:
+		pass
+
+if "crystal" not in modifiers:
+	alpha = None #not 1.0
+
+if "pie" in plottype:
+	header = "header" in modifiers
+else:
+	header = "noheader" not in modifiers
+
+
+if "tabs" in modifiers:
+	tabulator="\t"
+elif "commas" in modifiers:
+	tabulator=","
+elif "semicolons" in modifiers:
+	tabulator=";"
+else:
+	tabulator=None
+
+if "overlay" not in modifiers:
+	overlay = 0.0
+
+if "autolimits" in modifiers:
+	plotlimit_left = None
+	plotlimit_right = None
+	plotlimit_top = None
+	plotlimit_bottom = None
+
+colors_ = [x if isinstance(x,list) else [x,x] for x in colors_]
+regexcolors = False
+
+if "dark" in modifiers:
+	colors = [x[1] for x in colors_]
+	for i in intellicolors:
+		regexcolors |= i[0] == '/' and i[-1] == '/'
+		if isinstance(intellicolors[i],list):
+			intellicolors[i]=intellicolors[i][1]
+	edgecolor = edgecolors_[1]
+	plt.style.use('dark_background')
+else:
+	colors = [x[0] for x in colors_]
+	for i in intellicolors:
+		regexcolors |= i[0] == '/' and i[-1] == '/'
+		if isinstance(intellicolors[i],list):
+			intellicolors[i]=intellicolors[i][0]
+	edgecolor = edgecolors_[0]
+
+if "linearfit" in modifiers or "fit" in modifiers:
+	fit = 1
+elif "squarefit" in modifiers:
+	fit = 2
+elif "cubefit" in modifiers:
+	fit = 3
+else:
+	fit = None
+
+finalcolor = colors.pop()
+
+topbar = "bar" in plottype and (("count" not in plottype and "log" not in modifiers) or "top" in plottype) and "side" not in plottype
+
+font['family']='sans'
+
+
+warnings.simplefilter('ignore', np.RankWarning)
+
+with warnings.catch_warnings():
+	warnings.simplefilter("error")
+	for f in font_preference:
+		try:
+			fnt.findfont(f,fallback_to_default=False)
+			font['family']=f
+			break
+		except:
+			printe("Warning: Font family %s not found. Falling back." % f)
+
+
+plt.rc('font', **font)
+random.seed(colorseed) # fixed colorgen
+
+
+labellegend = None
+labely,labelx = None,None
+datelabels = False
+labels = []
+secondorder = []
+sizes = []
+other = 0
+sizesd = {}
+otherd = {}
+
+
+################ INPUT
+
+if "summary" in plottype:
+
+	if header:
+		for line in sys.stdin: #header
+			pline = line.strip("\r\n").split(tabulator)
+			if len(pline) < 2:
+				badheader(line)
+
+			if len(pline) == 2:
+				pline.append(None)
+
+			if len(pline) != 3:
+				badheader(line)
+
+			labely,labelx,labellegend = pline
+			break
+
+
+	for line in sys.stdin: #values
+		data = line.strip("\r\n").split(tabulator,2)
+
+		if labellegend is None and len(data) != 3:
+			data.append(None)
+
+		if len(data) == 0 or line.strip() == '':
+			continue
+
+		if not goodlen(data,3):
+			continue
+
+		if data[2] not in secondorder:
+			if len(secondorder) > limit_vertical-2:
+				data[2] = otherlabel
+				if otherlabel not in secondorder:
+					secondorder.append(otherlabel)
+			else:
+				secondorder.append(data[2])
+
+		if len(labels) > limit_horizontal-2 and data[1] not in labels:
+			if data[2] not in otherd:
+				otherd[data[2]] = 0.0
+			otherd[data[2]] += float(data[0])
+		else:
+			if data[1] not in labels:
+				labels.append(data[1])
+				sizesd[data[1]] = {}
+			if data[2] not in sizesd[data[1]]:
+				sizesd[data[1]][data[2]] = 0
+			sizesd[data[1]][data[2]] += float(data[0])
+
+	if len(otherd) > 0 :
+		labels.append(otherlabel)
+		sizesd[otherlabel] = otherd
+
+
+	for j,k in enumerate(secondorder):
+		sizes.append([])
+		for i in range(0,len(labels)):
+			if k in sizesd[labels[i]]:
+				sizes[j].append(sizesd[labels[i]][k])
+			else:
+				sizes[j].append(0)
+
+elif "count" in plottype or plottype == "pie":
+	if header:
+		for line in sys.stdin: #header
+			plines = line.strip("\r\n").split(tabulator)
+			if len(plines) != 2:
+				badheader(line)
+
+			labely,labelx = plines
+			labellegend = None
+			break
+
+	for line in sys.stdin: #values
+		data=line.strip("\r\n").split(tabulator, 1)
+
+		if len(data) == 0 or line.strip() == '':
+			continue
+		if len(data) == 1:
+			data.append('')
+
+		assert(len(data) == 2)
+
+		if len(labels) > limit_vertical-2:
+			other = other + float(data[0])
+		else:
+			labels.append(unnamedlabel % (len(labels)+1) if data[1]=='' else data[1])
+			sizes.append(float(data[0]))
+
+	if other != 0 :
+		labels.append(otherlabel)
+		sizes.append(other)
+
+	if plottype != "pie":
+		sizes = [sizes]
+
+else: #generic multi-column input
+	if header:
+		for line in sys.stdin: # header
+			pline = line.strip("\r\n").split(tabulator)
+			if "noindex" in modifiers:
+				pline.insert(0,"")
+
+			plines = pline[0].split(':')
+			if len(plines) == 1:
+				if len(pline)<3:
+					plines = pline[:]
+				else:
+					plines.append(None)
+			if len(plines) == 2:
+				plines.append(None)
+
+			if len(plines) != 3:
+				badheader(line)
+
+			labelx,labely,labellegend = plines
+			del pline[0]
+			secondorder = pline
+			sizes = [[] for x in pline]
+			break
+
+	if secondorder == [] and (labelx is not None): #simplified scatter input
+		scats = OrderedDict()
+
+		for line in sys.stdin: #values
+			data = line.strip("\r\n").split(tabulator)
+
+			if len(data) == 0 or line.strip() == '':
+				continue
+
+			if not goodlen(data,3):
+				continue
+
+			if data[2] not in scats:
+				scats[data[2]] = []
+
+			scats[data[2]].append([data[0],float(data[1])])
+
+		for a in scats:
+			secondorder.append(a)
+			sizes.append([])
+
+		i = -1
+		for b in scats:
+			i = i+1
+			for x,y in scats[b]:
+				labels.append(x)
+				for j in range(0,len(scats)):
+					sizes[j].append(y if i==j else None)
+
+
+	else:
+		correctlen = len(secondorder) + 1
+		lc = 0
+		for line in sys.stdin: #values
+			lc += 1
+			data = line.strip("\r\n").split(tabulator)
+			if "noindex" in modifiers:
+				data.insert(0,lc)
+
+			if len(data) == 0 or line.strip() == '':
+				continue
+
+			if correctlen == 1 and not header:
+				correctlen = len(data)
+
+			if not goodlen(data,correctlen):
+				continue
+
+			labels.append(data[0])
+			del data[0]
+
+			while len(data) > len(sizes): # if there was no header, do it manually
+				sizes.append([])
+
+			for i,d in enumerate(data):
+				try:
+					sizes[i].append(float(d))
+				except ValueError:
+					try:
+						sizes[i].append(float(d.replace(',','.')))
+					except ValueError:
+						sizes[i].append(None if "plot" in plottype else 0)
+						if d != '-' and d != '':
+							printe("Warning: Not a numeric value: '%s'. Use '-' to skip a value." % d)
+
+################  OUTPUT
+
+if empty(sizes):
+	print("No data found. Check if there is any or try adding \"noheader\" modifier.")
+	exit(1)
+
+while len(colors)<len(sizes)-1:
+	gcol='#'
+	coll = [random.randint(*(0x40*(i==0),0xff) if "dark" in modifiers else (0x00,0xff-0x40*(i==0))) for i in range(0,3)]
+	random.shuffle(coll)
+	for i in coll:
+		gcol+= '%02X' % i
+	colors.append(gcol)
+
+if "plot" in plottype:
+	colors.append(edgecolor)
+else:
+	colors.append(finalcolor)
+
+labels = list(map(labelmodifier, labels))
+secondorder = list(map(labelmodifier, secondorder))
+labelx = labelmodifier(labelx)
+labely = labelmodifier(labely)
+labellegend = labelmodifier(labellegend)
+
+if plottype == "pie":
+
+	fig1 = plt.subplots()[0]
+
+	sizesp = []
+	for s in sizes:
+		sizesp.append(round(float(s)/sum(sizes)*100,int(decimals)))
+	#	sizesp.append(round(float(s)/sum(sizes)*100 - 0.5*10**int(-decimals),int(decimals))) #simul floor
+
+	sizesp.pop()
+	sizesp.append(100-sum(sizesp)) # just making sure ;)
+	if sizesp[-1] < 0:
+		sizesp[sizesp.index(max(sizesp))] -= sizesp[-1]
+		sizesp[-1] = 0.0
+
+	pie_wedge_collection = plt.pie(sizes, **wedgestyle)
+
+	for i,pie_wedge in enumerate(pie_wedge_collection[0]):
+		pie_wedge.set_edgecolor(edgecolor)
+		col = intellicolor(labels[i], colors[i])
+		pie_wedge.set_facecolor(col)
+		pie_wedge.set_alpha(alpha)
+
+	labels = [('{0} - {1:1.'+str(decimals)+'f} %').format(i,j) for i,j in zip(labels, sizesp)]
+
+	plt.legend(labels, **remap(legendstyle, title=labelx))
+
+	plt.axis('equal')
+
+elif "bar" in plottype or "plot" in plottype:
+
+	fig1, ax1 = plt.subplots(figsize=(24,8))
+
+	autolb_success = False
+	N = len(labels)
+	ind = [x + width for x in range(0,N)]
+
+	bottom = [0]*N
+	items = []
+
+	if "bar" not in plottype:
+		try:
+			labels = list(map(float,labels))
+		except:
+			pass
+
+		try:
+			labels = list(map(dateutil.parser.parse,labels))
+			datelabels = True
+		except:
+			pass
+
+		if "unixtime" in modifiers:
+			try:
+				labels = list(map(datetime.datetime.fromtimestamp,labels))
+				datelabels = True
+			except:
+
+   				pass
+
+	if datelabels:
+		labels = [x+datetime.timedelta(seconds=timeoffset*3600) for x in labels]
+
+	if "log" in modifiers: # log auto-scale depends on data - https://github.com/matplotlib/matplotlib/issues/7413
+#		if any(all(a<=0 for a in x) for x in sizes):
+		if any(all((a is None or a <= 0) for a in x) for x in sizes):
+			modifiers.remove("log")
+			printe("Warning: A column has no positive elements. Cancelling 'log' modifier.")
+		else:
+			ax1.set_yscale('log')
+
+
+	for i,data in enumerate(sizes):
+
+		if "bar" in plottype and len(secondorder)<=1:
+			col = [ intellicolor(j,colors[i]) for j in labels]
+		else:
+			col = colors[i]
+
+		if len(secondorder)>i:
+			col = intellicolor(secondorder[i], col)
+
+		if "bar" in plottype:
+			if topbar:
+				items.append(ax1.bar(ind, data, width,
+					**remap(barstyle,
+					color=col,
+					align='center',
+					bottom=bottom,
+					edgecolor=edgecolor,
+					alpha=None if col=='none' else alpha )))
+
+				bottom = [x + y for x, y in zip(bottom, data)]
+			else:
+				realwidth = width/len(sizes)
+				if 'none' in col and alpha is not None and type(col) is list:
+					for cic in range(0,len(data)):
+						items.append(
+							ax1.bar(ind[cic]+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5), data[cic],
+							width - (len(sizes) -1)*overlay*realwidth if overlay else realwidth,
+							**remap(barstyle,
+							color=col[cic],
+							align='center',
+							edgecolor=edgecolor,
+							alpha=None if col[cic]=='none' else alpha )))
+				else:
+					items.append(
+						ax1.bar([x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind], data,
+						width - (len(sizes) -1)*overlay*realwidth if overlay else realwidth,
+						**remap(barstyle,
+						color=col,
+						align='center',
+						edgecolor=edgecolor,
+						alpha=None if col=='none' else alpha )))
+
+			if topbar:
+				labelsz = ind
+				dataz = bottom
+			else:
+				labelsz = [x+(i-0.5*(len(sizes)-1))*realwidth*(1-overlay*0.5) for x in ind]
+				dataz = data
+		else: #plot
+
+			labelsz = []
+			dataz = []
+			for j,z in enumerate(data):
+				if z is not None:
+					labelsz.append(labels[j])
+					dataz.append(z)
+
+			if "scatter" in plottype:
+				items.append(ax1.scatter(labels, data,
+					**remap(scatterstyle,
+					color=col,
+					alpha=None if col=='none' else alpha )))
+
+			else:
+				items.append(ax1.plot(labels, data,
+				**remap(remap(plotstyle,
+				color=col,
+				alpha=None if col=='none' else alpha,
+				drawstyle='steps-post' if 'stagger' in plottype else 'default',
+				markeredgecolor=edgecolor),
+				__direction=2,
+				marker='None' if len(dataz)>plotmarkerlimit else plotstyle.get('marker') ))[0])
+
+
+		if fit and len(dataz) > 1 and len(labelsz) > 1:
+			labelszl = list(range(0,len(labelsz)))
+			numerictrend = False
+			if type(labelsz[0]) in [float,int]:
+				labelszl = labelsz[::]
+				numerictrend = True
+			elif type(labelsz[0]) is datetime.datetime:
+				labelszl = list(map(mpld.date2num,labelsz))
+
+				numerictrend = True
+
+			labelszs, datazs = list(zip(*sorted(zip(labelszl, dataz))))
+			fitp = np.polyfit(labelszs,datazs,fit)
+			pf = np.poly1d(fitp)
+
+			if numerictrend:
+				labelsz = np.linspace(min(labelszs),max(labelszs),100)
+				labelszs = labelsz
+
+			ax1.plot(labelsz,pf(labelszs),
+			**remap(fitstyle,
+			color=col[0] if type(col) is list else col,
+			alpha=None if col=='none' else alpha))
+
+
+	ax1.set_axisbelow(True)
+
+	if datelabels and dateformat:
+		ax1.xaxis.set_major_formatter(mpld.DateFormatter(dateformat))
+
+	if labely is not None:
+		ax1.set_ylabel(labely)
+	if labelx is not None:
+		ax1.set_xlabel(labelx)
+
+	if "bar" in plottype:
+		ax1.set_xticks(ind)
+		ax1.set_xticklabels(labels)
+		ax1.set_xlim(-0.5+width,N-0.5+width)
+		if "labels" in modifiers:
+			list(map(autolabel,items))
+	else:
+		try:
+			ax1.set_xlim(left=min(labels)-0.5, right=max(labels)+0.5)
+			autolb_success = plotlimit_left is None and plotlimit_right is None
+			if plotlimit_left is not None:
+				ax1.set_xlim(left=plotlimit_left)
+			if plotlimit_right is not None:
+				ax1.set_xlim(right=plotlimit_right)
+
+		except:
+			pass
+
+		try: #datetime
+			maxi = recursive(max,labels)
+			mini = recursive(min,labels)
+			padding = multdelta((maxi-mini),0.02)
+			minpadding = datetime.timedelta(1.0/24/60/2) #minimum padding = 30 seconds
+			if padding < minpadding:
+				padding = minpadding
+			ax1.set_xlim(left=min(labels) - padding, right=max(labels) + padding)
+			autolb_success = True
+		except:
+			pass
+
+		maxi = recursive(max,sizes)
+		mini = recursive(min,sizes)
+
+		if "log" not in modifiers and maxi != mini:
+			ax1.set_ylim(bottom=mini - (maxi-mini)*0.02, top=maxi + (maxi-mini)*0.02)
+
+	if not autolb_success and max(list(map(len,list(map(str,labels)))))*N>=100:
+		plt.xticks(rotation=33)
+
+	ax1.xaxis.set_label_coords(1.05, 0.02)
+
+	if plotlimit_bottom is not None:
+		if ("log" not in modifiers or plotlimit_bottom>0):
+			ax1.set_ylim(bottom=plotlimit_bottom)
+		else:
+			 printe("Warning: Ignoring non-positive plotlimit_bottom for log axis.")
+
+	if plotlimit_top is not None:
+		if ("log" not in modifiers or plotlimit_top>0):
+			ax1.set_ylim(top=plotlimit_top)
+		else:
+			printe("Warning: Ignoring non-positive plotlimit_top for log axis.")
+
+	if "grid" in modifiers:
+		ax1.grid(**remap(gridstyle,
+			which="major",
+			axis='y' if "bar" in plottype else "both" ))
+
+		if "log" in modifiers:
+			ax1.grid(**remap(gridstyleminor,
+				which="minor",
+				axis='y' if "bar" in plottype else "both" ))
+
+	if len(secondorder) > 1:
+		if topbar:
+			ax1.legend(items[::-1],secondorder[::-1], **remap(legendstyle, title=labellegend))
+		else:
+			ax1.legend(items, secondorder, **remap(legendstyle, title=labellegend))
+
+
+else:
+	printe("Unknown plottype '%s'. See Usage!"%plottype)
+	exit(4)
+
+
+if "dontload" not in modifiers:
+	try:
+		exec(compile(open(postprocfile, "rb").read(), postprocfile, 'exec'))
+	except IOError:
+		pass
+
+
+plt.savefig(outfilename, bbox_inches='tight', transparent = "transparent" in modifiers)
+
+if "show" in modifiers and not "test" in modifiers:
+	if opener and opener.lower() != "none":
+		os.system("%s %s"%(opener,outfilename))
+	else:
+		plt.show()
+
+if "test" in modifiers:
+	plt.show()
+

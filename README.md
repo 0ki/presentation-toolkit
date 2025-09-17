@@ -7,6 +7,8 @@ These tools work on Linux, but can be made to work on other platforms too with s
 
 All pull requests and issues welcome.
 
+2026 update: chart3 is the python3 version of chart.
+
 
 ![Output example (hexcolordump)](hexcolordump_sample.png "Example usage of 'hexcolordump'")
 
@@ -59,6 +61,7 @@ https://twitter.com/jesslynnrose/status/1041242744998572032
 1. terminal 1: `screen -S presenting`
 1. terminal 2: `screen -x presenting`
 1. move one of the terminals to the other screen
+
 Thanks to @leyrer & @MacLemon
 
 * Drawing graphs
