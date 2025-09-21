@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 PIDFILE=/tmp/termshot.$$
-[ -z "$WINDOWID" ] && echo \$WINDOWID is not set. Check you terminal emulator. && exit 2
+[ -z "$WINDOWID" ] && WINDOWID="$(xdotool getactivewindow)"
+[ -z "$WINDOWID" ] && echo \$WINDOWID is not set and xdotool does not work. Check you terminal emulator or install xdotool. && exit 2
 
 sc=0
 
