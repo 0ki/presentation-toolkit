@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
-[ -z $1 ] && echo "Usage: $0 /path/to/destination_image.png" && exit 1
+CROP=+14+0 #this removes the scrollbar, adjust as needed depending on your terminal emulator
+[ -z "$1" ] && echo "Usage: $0 /path/to/destination_image.png" && exit 1
 id="$(xwininfo |grep "^xwininfo: Window id:"|cut -d \  -f 4)"
-import -silent -window $id -gravity East -crop +14+30 $1
+import -silent -window $id -gravity East -crop "$CROP" "$1"

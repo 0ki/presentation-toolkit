@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+CROP=+14+0 #this removes the scrollbar, adjust as needed depending on your terminal emulator
 PIDFILE=/tmp/termshot.$$
 [ -z "$WINDOWID" ] && WINDOWID="$(xdotool getactivewindow)"
 [ -z "$WINDOWID" ] && echo \$WINDOWID is not set and xdotool does not work. Check you terminal emulator or install xdotool. && exit 2
@@ -34,6 +35,6 @@ while [ ! -f $PIDFILE ]; do
 done
 rm $PIDFILE
 sleep 0.5
-import -silent -window "$WINDOWID" -gravity East -crop +14+30 "$file"
+import -silent -window "$WINDOWID" -gravity East -crop "$CROP" "$file"
 sleep 1
 echo Saved screenshot in $file
