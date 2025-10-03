@@ -66,8 +66,7 @@ Thanks to @leyrer & @MacLemon
 
 * If you have a portable monitor you can just mirror the beamer on it
 1. xrandr # identify srceens, look for +x+y to determine the order
-1. xrandr --output eDP --output DisplayPort-0 --same-as HDMI-A-0 
-
+1. xrandr --output eDP --output HDMI-A-0 --same-as DisplayPort-0
 
 * Drawing graphs
 
