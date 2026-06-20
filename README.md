@@ -68,6 +68,9 @@ Thanks to @leyrer & @MacLemon
 1. xrandr # identify srceens, look for +x+y to determine the order
 1. xrandr --output eDP --output HDMI-A-0 --same-as DisplayPort-0
 
+* Show a copy of your presentation nootes (or anything else) on an extra monitor
+1. ffplay -f x11grab -framerate 10 -video_size 1110x1000 -i :0.0+760,30
+
 * Drawing graphs
 
 ```
