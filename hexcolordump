@@ -1,7 +1,8 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
+from __future__ import print_function
 import argparse
 import colorful as C
-import sys,re,colorsys
+import sys,re,io,colorsys
 
 
 # https://www.quora.com/How-do-I-generate-n-visually-distinct-RGB-colours-in-Python
@@ -69,7 +70,7 @@ parser.add_argument('-p', dest='colors', type=str, metavar='"1-6,8/7/0x33-0x50/+
 parser.add_argument('-t', dest='titles', type=str, metavar='"descr1//descr3/descr4"', help='Titles for each of the color groups')
 parser.add_argument('--bare', action='store_true', help='Just the dump')
 parser.add_argument('-s', '--strings', action='store_true', help='Show printable ascii characters')
-parser.add_argument('file', nargs='?', type=argparse.FileType('rb'), default=sys.stdin, help='Filename to read')
+parser.add_argument('file', nargs='?', type=argparse.FileType('rb'), default=io.open(sys.stdin.fileno(), 'rb'), help='Filename to read')
 args=parser.parse_args()
 
 infile = args.file
@@ -128,7 +129,7 @@ for i,c in enumerate(getDistinctColors(len(colors))):
 	if i>=len(titles) or titles[i] == '':
 		continue
 	fstr = '{c.bold_white_on_cc%02d}00{c.reset} - {c.bold_white}%s{c.reset}' % (i,escapeformat(titles[i]))
-	print fstr.format(c=C) 
+	print(fstr.format(c=C))
 
 
 subs = {
@@ -160,7 +161,7 @@ if not args.everything:
 
 while True:
 	data = bytearray(infile.read(width))
-	if offset < print_start:
+	if print_start and offset < print_start:
 		offset += len(data)
 		continue
 		
@@ -168,16 +169,16 @@ while True:
 		break
 	
 	if not args.bare:
-		print C.gray50("0x%008x" % offset),C.white("|"),
+		print(C.gray50("0x%008x" % offset),C.white("|"),end="")
 		
 	for micro_offset,byte in enumerate(data):
-		print fc("%02x" % byte, byte, offset + micro_offset),
+		print(fc("%02x" % byte, byte, offset + micro_offset),end="")
 		
 	for i in range(len(data),width):
-		print "  ",
+		print("  ",end="")
 	
 	if args.strings:
-		print C.white("|"),
+		print(C.white("|"),end="")
 		
 		printable = ""
 		for micro_offset,byte in enumerate(data):
@@ -190,9 +191,9 @@ while True:
 			printable += fc("%c" % prn, byte, offset + micro_offset)
 
 
-		print printable
+		print(printable)
 	else:
-		print
+		print()
 	offset += len(data)
 	
 	
