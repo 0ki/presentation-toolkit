@@ -66,6 +66,7 @@ Thanks to @leyrer & @MacLemon
 
 * If you have a portable monitor you can just mirror the beamer on it
 1. xrandr # identify srceens, look for +x+y to determine the order
+1. set the same resolution on the screens that you will be mirroring
 1. xrandr --output eDP --output HDMI-A-0 --same-as DisplayPort-0
 
 * Show a copy of your presentation nootes (or anything else) on an extra monitor
